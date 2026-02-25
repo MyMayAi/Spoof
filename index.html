@@ -6,6 +6,11 @@
     <meta name="theme-color" content="#f59e0b">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/chef-hat.png">
+    
+    <!-- Web App Manifest per Installazione (Base64) -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBlc29TZW56YUJpbGFuY2EgLSBDaGVmIEFjYWRlbXkiLAogICJzaG9ydF9uYW1lIjogIlBlc29TZW56YSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjFlMmU2IiwKICAidGhlbWVfY29sb3IiOiAiI2Y1OWUwYiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaW1nLmljb25zOC5jb20vZmx1ZW5jeS8xOTIvY2hlZi1oYXQucG5nIiwKICAgICAgInNpemVzIjogIjE5MngxOTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9LAogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaW1nLmljb25zOC5jb20vZmx1ZW5jeS81MTIvY2hlZi1oYXQucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
+
     <title>PesoSenzaBilancia - Chef Academy</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -91,7 +96,11 @@
                     <div class="flex justify-between items-end mb-1">
                         <div>
                             <h2 id="rankTitle" class="text-xl font-900 tracking-tighter text-amber-500 leading-none uppercase">AIUTO CUOCO</h2>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Livello Chef <span id="levelLabel">1</span></p>
+                            <div class="flex items-center space-x-2">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Livello Chef <span id="levelLabel">1</span></p>
+                                <!-- Tasto Installazione -->
+                                <button id="installBtn" class="hidden bg-amber-500/20 hover:bg-amber-500/40 text-amber-500 text-[8px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 transition-all uppercase">Installa App</button>
+                            </div>
                         </div>
                         <span id="xpLabel" class="text-[10px] font-900 text-slate-500">0/100 XP</span>
                     </div>
@@ -132,7 +141,6 @@
                     <span class="text-[8px] font-800 uppercase">Cucchiaio</span>
                 </button>
                 <button onclick="selectTool('cucchiaino')" id="btn-cucchiaino" class="selectable-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-50">
-                    <!-- Icona Cucchiaino Ottimizzata -->
                     <img src="https://img.icons8.com/color/48/tea-spoon.png" class="w-8 h-8 mb-1 scale-110">
                     <span class="text-[8px] font-800 uppercase">Cucchiaino</span>
                 </button>
@@ -159,7 +167,7 @@
                     </div>
                 </div>
                 
-                <!-- Helper Visuale Quantità (Riempi X Utensili) -->
+                <!-- Helper Visuale Quantità -->
                 <div id="quantityHelper" class="hidden bg-amber-50 border border-amber-100 p-3 rounded-2xl tool-indicator">
                     <div class="flex items-center space-x-3">
                         <div class="bg-white p-2 rounded-xl shadow-sm">
@@ -218,7 +226,6 @@
                         Invia Risposta
                     </button>
                 </div>
-                <!-- Feedback Overlay -->
                 <div id="triviaFeedback" class="hidden flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-300">
                     <div id="feedbackIcon" class="text-4xl mb-2"></div>
                     <h4 id="feedbackTitle" class="text-sm font-900 uppercase tracking-tighter mb-1"></h4>
@@ -229,6 +236,42 @@
     </div>
 
     <script>
+        /**
+         * LOGICA PWA & INSTALLAZIONE
+         * Gestione errori registrazione Service Worker e attivazione Prompt Chrome
+         */
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        // Cattura l'evento di installabilità di Chrome
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden'); // Mostra il tasto solo se installabile
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // Correzione errore registrazione SW in ambiente sandbox
+        // Proviamo a registrarlo solo se l'origine è sicura (https/localhost) 
+        // ed evitiamo i blob URL che causano il TypeError segnalato.
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            // Nota: in ambiente anteprima/sandbox, la registrazione di un file esterno potrebbe fallire.
+            // Abbiamo rimosso il blob URL per evitare crash dello script principale.
+            navigator.serviceWorker.register('./sw.js').catch(err => {
+                console.log("ServiceWorker registration skipped (Expected in preview environments)");
+            });
+        }
+
         const db = {
             farina: { icon: "🌾", name: "Farina", weights: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120 }, kcal: 364, c: 76, p: 10, f: 1 },
             olio: { icon: "🫒", name: "Olio", weights: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180 }, kcal: 884, c: 0, p: 0, f: 99 },
@@ -347,7 +390,6 @@
                 const units = (inputVal / unitWeight).toFixed(1);
                 document.getElementById('mainResult').textContent = units + 'u';
                 
-                // Mostra aiuto visuale per riempire gli utensili
                 helper.classList.remove('hidden');
                 document.getElementById('helperIcon').src = toolIcons[currentTool];
                 
