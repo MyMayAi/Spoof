@@ -2,21 +2,20 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#f59e0b">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/chef-hat.png">
     
-    <!-- Web App Manifest per Installazione (Base64) -->
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBlc29TZW56YUJpbGFuY2EgLSBDaGVmIEFjYWRlbXkiLAogICJzaG9ydF9uYW1lIjogIlBlc29TZW56YSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjFlMmU2IiwKICAidGhlbWVfY29sb3IiOiAiI2Y1OWUwYiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaW1nLmljb25zOC5jb20vZmx1ZW5jeS8xOTIvY2hlZi1oYXQucG5nIiwKICAgICAgInNpemVzIjogIjE5MngxOTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9LAogICAgewogICAgICAic3JjIjogImh0dHBzOi8vaW1nLmljb25zOC5jb20vZmx1ZW5jeS81MTIvY2hlZi1oYXQucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
     <title>PesoSenzaBilancia - Chef Academy</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
+
         :root {
             --primary: #f59e0b;
             --primary-dark: #d97706;
@@ -29,6 +28,7 @@
             color: #1e293b;
             min-height: 100vh;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .main-card {
@@ -40,15 +40,14 @@
 
         .chef-card {
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            position: relative;
-            overflow: hidden;
         }
 
         .xp-bar-inner { transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
         .mode-btn.active { background: white; color: var(--primary-dark); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
-        .selectable-card.active { border-color: var(--primary); background: #fffbeb; }
+        .selectable-card { transition: all 0.2s ease; border: 2px solid #f8fafc; }
+        .selectable-card.active { border-color: var(--primary); background: #fffbeb; transform: scale(1.05); }
 
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
@@ -57,221 +56,126 @@
         }
         .level-up-glow { animation: pulse-gold 2s infinite; }
 
-        .trivia-card {
-            border: 2px dashed #e2e8f0;
-            transition: all 0.4s ease;
-        }
-        .trivia-card.completed { opacity: 0.6; pointer-events: none; transform: scale(0.98); }
-
         #customSelectOptions {
             max-height: 0; opacity: 0; overflow: hidden; transition: all 0.3s ease-out;
         }
-        #customSelectOptions.open { max-height: 300px; opacity: 1; overflow-y: auto; }
+        #customSelectOptions.open { max-height: 400px; opacity: 1; overflow-y: auto; }
 
         .option-btn.selected { border-color: #6366f1; background-color: #eef2ff; }
-
-        .tool-indicator {
-            animation: slideUp 0.3s ease-out forwards;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="flex items-center justify-center p-4 sm:p-8">
+<body class="flex items-center justify-center p-4">
 
-    <div class="main-card w-full max-w-[460px] rounded-[3rem] overflow-hidden relative">
-        
-        <!-- Identity Header -->
-        <div class="chef-card p-6 text-white border-b border-white/5">
-            <div class="flex items-center space-x-5">
-                <div id="rankContainer" class="relative group">
-                    <div id="levelGlow" class="absolute inset-0 bg-amber-500/20 rounded-2xl blur-xl opacity-0 transition-opacity duration-500"></div>
-                    <div class="w-20 h-20 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center text-4xl shadow-inner relative z-10 overflow-hidden">
-                        <img id="rankImage" src="https://img.icons8.com/fluency/96/chef-hat.png" alt="Grado" class="w-14 h-14 object-contain">
+    <div class="main-card w-full max-w-[460px] rounded-[2.5rem] overflow-hidden relative">
+
+        <div class="chef-card p-6 text-white">
+            <div class="flex items-center space-x-4">
+                <div id="rankContainer" class="relative">
+                    <div id="levelGlow" class="absolute inset-0 bg-amber-500/20 rounded-2xl blur-xl opacity-0"></div>
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center text-3xl shadow-inner relative z-10">
+                        <span id="rankEmoji">👨‍🍳</span>
                     </div>
                 </div>
                 <div class="flex-1">
                     <div class="flex justify-between items-end mb-1">
                         <div>
-                            <h2 id="rankTitle" class="text-xl font-900 tracking-tighter text-amber-500 leading-none uppercase">AIUTO CUOCO</h2>
-                            <div class="flex items-center space-x-2">
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Livello Chef <span id="levelLabel">1</span></p>
-                                <!-- Tasto Installazione -->
-                                <button id="installBtn" class="hidden bg-amber-500/20 hover:bg-amber-500/40 text-amber-500 text-[8px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 transition-all uppercase">Installa App</button>
-                            </div>
+                            <h2 id="rankTitle" class="text-lg font-black text-amber-500 leading-none uppercase">AIUTO CUOCO</h2>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Livello <span id="levelLabel">1</span></p>
                         </div>
-                        <span id="xpLabel" class="text-[10px] font-900 text-slate-500">0/100 XP</span>
+                        <span id="xpLabel" class="text-[10px] font-black text-slate-500">0/100 XP</span>
                     </div>
-                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div id="xpBar" class="xp-bar-inner h-full bg-gradient-to-r from-amber-500 to-orange-400 w-0"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Conversione Header -->
         <div class="bg-white p-6 pb-2">
-            <div class="inline-flex bg-slate-100 p-1 rounded-2xl w-full mb-6">
-                <button onclick="setMode('toWeight')" id="tab-toWeight" class="mode-btn active flex-1 py-3 text-[10px] font-900 uppercase rounded-xl text-slate-500 transition-all">
+            <div class="inline-flex bg-slate-100 p-1 rounded-2xl w-full mb-4">
+                <button onclick="setMode('toWeight')" id="tab-toWeight" class="mode-btn active flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all">
                     Utensile → Grammi
                 </button>
-                <button onclick="setMode('toTool')" id="tab-toTool" class="mode-btn flex-1 py-3 text-[10px] font-900 uppercase rounded-xl text-slate-500 transition-all">
+                <button onclick="setMode('toTool')" id="tab-toTool" class="mode-btn flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all">
                     Grammi → Utensile
                 </button>
             </div>
 
-            <!-- Selezione Cibo -->
-            <div id="customSelectTrigger" onclick="toggleDropdown()" class="w-full bg-slate-50 border-2 border-transparent rounded-2xl px-5 py-4 text-slate-700 font-bold flex items-center justify-between cursor-pointer hover:bg-white hover:border-amber-200 transition-all shadow-sm mb-6">
+            <div onclick="toggleDropdown()" class="w-full bg-slate-50 border-2 border-transparent rounded-2xl px-5 py-4 flex items-center justify-between cursor-pointer hover:border-amber-200 transition-all mb-4">
                 <div class="flex items-center space-x-3">
-                    <span id="selectedIcon" class="text-xl">🌾</span>
-                    <span id="selectedText">Farina</span>
+                    <span id="selectedIcon" class="text-2xl">🌾</span>
+                    <span id="selectedText" class="font-bold text-slate-700">Farina</span>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                <span class="text-slate-300">▼</span>
             </div>
-            <div id="customSelectOptions" class="absolute z-50 left-6 right-6 mt-[-1rem] bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden"></div>
+            <div id="customSelectOptions" class="absolute z-50 left-6 right-6 bg-white border border-slate-100 shadow-2xl rounded-2xl"></div>
         </div>
 
         <div class="p-6 pt-0 space-y-4">
-            <!-- Utensili Grid -->
             <div class="grid grid-cols-4 gap-2">
-                <button onclick="selectTool('cucchiaio')" id="btn-cucchiaio" class="selectable-card active flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-50">
-                    <img src="https://img.icons8.com/fluency/48/spoon.png" class="w-8 h-8 mb-1">
-                    <span class="text-[8px] font-800 uppercase">Cucchiaio</span>
+                <button onclick="selectTool('cucchiaio')" id="btn-cucchiaio" class="selectable-card active flex flex-col items-center p-3 rounded-2xl">
+                    <span class="text-2xl mb-1">🥄</span>
+                    <span class="text-[8px] font-black uppercase">Cucchiaio</span>
                 </button>
-                <button onclick="selectTool('cucchiaino')" id="btn-cucchiaino" class="selectable-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-50">
-                    <img src="https://img.icons8.com/color/48/tea-spoon.png" class="w-8 h-8 mb-1 scale-110">
-                    <span class="text-[8px] font-800 uppercase">Cucchiaino</span>
+                <button onclick="selectTool('cucchiaino')" id="btn-cucchiaino" class="selectable-card flex flex-col items-center p-3 rounded-2xl">
+                    <span class="text-2xl mb-1">🥄</span>
+                    <span class="text-[8px] font-black uppercase">Cucchiaino</span>
                 </button>
-                <button onclick="selectTool('tazzina')" id="btn-tazzina" class="selectable-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-50">
-                    <span class="text-xl mb-1">☕</span>
-                    <span class="text-[8px] font-800 uppercase">Tazzina</span>
+                <button onclick="selectTool('tazzina')" id="btn-tazzina" class="selectable-card flex flex-col items-center p-3 rounded-2xl">
+                    <span class="text-2xl mb-1">☕</span>
+                    <span class="text-[8px] font-black uppercase">Tazzina</span>
                 </button>
-                <button onclick="selectTool('bicchiere')" id="btn-bicchiere" class="selectable-card flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-50">
-                    <span class="text-xl mb-1">🥛</span>
-                    <span class="text-[8px] font-800 uppercase">Bicchiere</span>
+                <button onclick="selectTool('bicchiere')" id="btn-bicchiere" class="selectable-card flex flex-col items-center p-3 rounded-2xl">
+                    <span class="text-2xl mb-1">🥛</span>
+                    <span class="text-[8px] font-black uppercase">Bicchiere</span>
                 </button>
             </div>
 
-            <!-- Input & Risultato Principale -->
-            <div class="flex flex-col space-y-3">
-                <div class="flex items-center space-x-4">
+            <div class="space-y-3">
+                <div class="flex items-center space-x-3">
                     <div class="flex-1 bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                        <input type="number" id="mainInput" value="1" class="w-full text-center text-4xl font-900 text-slate-800 bg-transparent border-none focus:ring-0 p-0">
-                        <p id="inputLabel" class="text-[9px] font-800 text-slate-400 uppercase text-center mt-1 tracking-widest">Unità</p>
+                        <input type="number" id="mainInput" value="1" class="w-full text-center text-4xl font-black text-slate-800 bg-transparent border-none focus:ring-0">
+                        <p id="inputLabel" class="text-[9px] font-black text-slate-400 uppercase text-center mt-1">Unità</p>
                     </div>
-                    <div class="flex-1 bg-amber-500 p-4 rounded-3xl shadow-lg shadow-amber-200 text-white text-center">
-                        <div id="mainResult" class="text-4xl font-900 tracking-tighter">0g</div>
-                        <p id="kcalResult" class="text-[10px] font-800 text-white/90 uppercase tracking-widest mt-0.5">0 KCAL</p>
+                    <div class="flex-1 bg-amber-500 p-4 rounded-3xl shadow-lg text-white text-center">
+                        <div id="mainResult" class="text-4xl font-black">0g</div>
+                        <p id="kcalResult" class="text-[10px] font-bold opacity-90 uppercase mt-0.5">0 KCAL</p>
                     </div>
                 </div>
-                
-                <!-- Helper Visuale Quantità -->
-                <div id="quantityHelper" class="hidden bg-amber-50 border border-amber-100 p-3 rounded-2xl tool-indicator">
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-white p-2 rounded-xl shadow-sm">
-                            <img id="helperIcon" src="" class="w-6 h-6 object-contain">
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-800 text-amber-800 uppercase tracking-wider leading-none mb-1">Suggerimento Chef</p>
-                            <p id="helperText" class="text-xs font-bold text-slate-700"></p>
-                        </div>
-                    </div>
+
+                <div id="quantityHelper" class="hidden bg-amber-50 border border-amber-100 p-4 rounded-2xl animate-pulse">
+                    <p id="helperText" class="text-xs font-bold text-slate-700 text-center"></p>
                 </div>
             </div>
 
-            <!-- Dashboard Valori Nutrizionali -->
             <div class="bg-slate-900 rounded-[2rem] p-5 text-white">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-[10px] font-900 text-amber-500 uppercase tracking-widest">Macro-Nutrienti</h3>
-                    <div class="h-[1px] flex-1 bg-slate-700 mx-4"></div>
-                    <span class="text-[8px] text-slate-500 uppercase font-bold">Dati medi / 100g</span>
-                </div>
                 <div class="grid grid-cols-3 gap-4">
                     <div class="text-center">
-                        <div id="carbsValue" class="text-lg font-900 text-white leading-none">0g</div>
-                        <p class="text-[8px] text-slate-400 font-800 uppercase mt-1 tracking-wider">Carboidrati</p>
-                        <div class="w-full bg-slate-800 h-1 mt-2 rounded-full overflow-hidden">
-                            <div id="carbsBar" class="h-full bg-blue-400 w-0 transition-all duration-500"></div>
-                        </div>
+                        <div id="carbsValue" class="text-lg font-black">0g</div>
+                        <p class="text-[8px] text-slate-500 uppercase font-bold mt-1">Carbi</p>
+                        <div class="w-full bg-slate-800 h-1 mt-2 rounded-full"><div id="carbsBar" class="h-full bg-blue-400 w-0 transition-all"></div></div>
                     </div>
                     <div class="text-center">
-                        <div id="proteinValue" class="text-lg font-900 text-white leading-none">0g</div>
-                        <p class="text-[8px] text-slate-400 font-800 uppercase mt-1 tracking-wider">Proteine</p>
-                        <div class="w-full bg-slate-800 h-1 mt-2 rounded-full overflow-hidden">
-                            <div id="proteinBar" class="h-full bg-red-400 w-0 transition-all duration-500"></div>
-                        </div>
+                        <div id="proteinValue" class="text-lg font-black">0g</div>
+                        <p class="text-[8px] text-slate-500 uppercase font-bold mt-1">Proteine</p>
+                        <div class="w-full bg-slate-800 h-1 mt-2 rounded-full"><div id="proteinBar" class="h-full bg-red-400 w-0 transition-all"></div></div>
                     </div>
                     <div class="text-center">
-                        <div id="fatsValue" class="text-lg font-900 text-white leading-none">0g</div>
-                        <p class="text-[8px] text-slate-400 font-800 uppercase mt-1 tracking-wider">Grassi</p>
-                        <div class="w-full bg-slate-800 h-1 mt-2 rounded-full overflow-hidden">
-                            <div id="fatsBar" class="h-full bg-yellow-400 w-0 transition-all duration-500"></div>
-                        </div>
+                        <div id="fatsValue" class="text-lg font-black">0g</div>
+                        <p class="text-[8px] text-slate-500 uppercase font-bold mt-1">Grassi</p>
+                        <div class="w-full bg-slate-800 h-1 mt-2 rounded-full"><div id="fatsBar" class="h-full bg-yellow-400 w-0 transition-all"></div></div>
                     </div>
                 </div>
             </div>
-
-            <!-- Quiz & Sfida -->
-            <div id="triviaContainer" class="trivia-card p-5 rounded-[2rem] bg-slate-50 relative overflow-hidden">
-                <div id="triviaContent">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-[9px] font-900 text-indigo-600 uppercase tracking-widest">Quiz dello Chef</span>
-                        <span class="bg-indigo-100 text-indigo-600 text-[8px] px-2 py-0.5 rounded-full font-bold">+50 XP</span>
-                    </div>
-                    <p id="triviaQuestion" class="text-xs font-bold text-slate-700 mb-4 leading-snug"></p>
-                    <div id="triviaOptions" class="grid grid-cols-1 gap-2 mb-4"></div>
-                    <button id="confirmTriviaBtn" onclick="confirmTrivia()" class="w-full bg-indigo-600 text-white py-3 rounded-2xl text-[10px] font-900 uppercase tracking-widest shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                        Invia Risposta
-                    </button>
-                </div>
-                <div id="triviaFeedback" class="hidden flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-300">
-                    <div id="feedbackIcon" class="text-4xl mb-2"></div>
-                    <h4 id="feedbackTitle" class="text-sm font-900 uppercase tracking-tighter mb-1"></h4>
-                    <p id="feedbackText" class="text-[10px] text-slate-500 font-medium px-4"></p>
-                </div>
-            </div>
+            
+            <button id="installBtn" class="hidden w-full bg-slate-800 text-white py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest">Installa l'App dello Chef</button>
         </div>
     </div>
 
     <script>
-        /**
-         * LOGICA PWA & INSTALLAZIONE
-         * Gestione errori registrazione Service Worker e attivazione Prompt Chrome
-         */
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-
-        // Cattura l'evento di installabilità di Chrome
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.classList.remove('hidden'); // Mostra il tasto solo se installabile
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installBtn.classList.add('hidden');
-                }
-                deferredPrompt = null;
-            }
-        });
-
-        // Correzione errore registrazione SW in ambiente sandbox
-        // Proviamo a registrarlo solo se l'origine è sicura (https/localhost) 
-        // ed evitiamo i blob URL che causano il TypeError segnalato.
-        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
-            // Nota: in ambiente anteprima/sandbox, la registrazione di un file esterno potrebbe fallire.
-            // Abbiamo rimosso il blob URL per evitare crash dello script principale.
-            navigator.serviceWorker.register('./sw.js').catch(err => {
-                console.log("ServiceWorker registration skipped (Expected in preview environments)");
-            });
-        }
-
         const db = {
             farina: { icon: "🌾", name: "Farina", weights: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120 }, kcal: 364, c: 76, p: 10, f: 1 },
             olio: { icon: "🫒", name: "Olio", weights: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180 }, kcal: 884, c: 0, p: 0, f: 99 },
@@ -281,191 +185,82 @@
             riso: { icon: "🍚", name: "Riso", weights: { cucchiaio: 18, cucchiaino: 6, tazzina: 85, bicchiere: 160 }, kcal: 360, c: 80, p: 7, f: 0.6 }
         };
 
-        const toolIcons = {
-            cucchiaio: "https://img.icons8.com/fluency/48/spoon.png",
-            cucchiaino: "https://img.icons8.com/color/48/tea-spoon.png",
-            tazzina: "https://img.icons8.com/emoji/48/hot-beverage-emoji.png",
-            bicchiere: "https://img.icons8.com/fluency/48/glass-of-milk.png"
-        };
-
+        const toolEmojis = { cucchiaio: "🥄", cucchiaino: "🥄", tazzina: "☕", bicchiere: "🥛" };
         const ranks = [
-            { title: "AIUTO CUOCO", img: "https://img.icons8.com/fluency/96/cooking-pot.png" },
-            { title: "CAPO PARTITA", img: "https://img.icons8.com/fluency/96/frying-pan.png" },
-            { title: "SOUS CHEF", img: "https://img.icons8.com/fluency/96/chef-hat.png" },
-            { title: "EXECUTIVE CHEF", img: "https://img.icons8.com/fluency/96/restaurant.png" },
-            { title: "MASTER CHEF", img: "https://img.icons8.com/fluency/96/michelin-star.png" }
+            { title: "AIUTO CUOCO", emoji: "👨‍🍳" },
+            { title: "CAPO PARTITA", emoji: "🍳" },
+            { title: "SOUS CHEF", emoji: "👨‍🍳" },
+            { title: "EXECUTIVE CHEF", emoji: "🍱" },
+            { title: "MASTER CHEF", emoji: "⭐️" }
         ];
 
-        const triviaQuestions = [
-            { q: "Quante calorie fornisce 1g di grassi?", a: ["4 kcal", "7 kcal", "9 kcal"], c: 2, e: "I grassi sono i macronutrienti più densi: 9 kcal per grammo." },
-            { q: "Qual è il macronutriente principale della farina?", a: ["Proteine", "Carboidrati", "Grassi"], c: 1, e: "La farina è composta principalmente da amidi (carboidrati complessi)." },
-            { q: "Quante calorie hanno 100g di sale?", a: ["0 kcal", "50 kcal", "10 kcal"], c: 0, e: "Il sale è un minerale e non fornisce energia calorica." },
-            { q: "Quale olio ha più calorie?", a: ["Oliva", "Girasole", "Tutti uguali"], c: 2, e: "Tutti i grassi puri hanno circa lo stesso apporto calorico: 9 kcal/g." }
-        ];
-
-        let userState = { xp: 0, level: 1, dailyTriviaDone: false };
-        let currentMode = 'toWeight', currentTool = 'cucchiaio', currentFoodKey = 'farina';
-        let selectedTriviaOption = null;
-        let currentQuestionObj = null;
+        let state = { xp: 0, level: 1, mode: 'toWeight', tool: 'cucchiaio', food: 'farina' };
 
         function init() {
             const container = document.getElementById('customSelectOptions');
             Object.keys(db).forEach(key => {
                 const div = document.createElement('div');
-                div.className = "px-6 py-4 flex items-center space-x-3 cursor-pointer border-b border-slate-50 hover:bg-slate-50 transition-colors";
-                div.innerHTML = `<span class="text-xl">${db[key].icon}</span> <span class="text-sm font-bold text-slate-700">${db[key].name}</span>`;
+                div.className = "px-6 py-4 flex items-center space-x-3 cursor-pointer border-b border-slate-50 hover:bg-slate-50";
+                div.innerHTML = `<span>${db[key].icon}</span> <span class="text-sm font-bold">${db[key].name}</span>`;
                 div.onclick = () => selectFood(key);
                 container.appendChild(div);
             });
-            loadDailyTrivia();
-            updateXP(0);
-            calculate();
-        }
-
-        function addXP(amount) {
-            userState.xp += amount;
-            if (userState.xp >= 100) {
-                userState.xp = 0;
-                userState.level++;
-                triggerLevelUp();
-            }
             updateXP();
-        }
-
-        function updateXP() {
-            document.getElementById('xpBar').style.width = userState.xp + '%';
-            document.getElementById('xpLabel').textContent = `${userState.xp}/100 XP`;
-            document.getElementById('levelLabel').textContent = userState.level;
-            const rIdx = Math.min(ranks.length - 1, Math.floor((userState.level - 1) / 2));
-            document.getElementById('rankTitle').textContent = ranks[rIdx].title;
-        }
-
-        function triggerLevelUp() {
-            const glow = document.getElementById('levelGlow');
-            glow.style.opacity = '1';
-            document.getElementById('rankContainer').classList.add('level-up-glow');
-            setTimeout(() => {
-                glow.style.opacity = '0';
-                document.getElementById('rankContainer').classList.remove('level-up-glow');
-            }, 3000);
+            calculate();
         }
 
         function toggleDropdown() { document.getElementById('customSelectOptions').classList.toggle('open'); }
-        
+
         function selectFood(key) {
-            currentFoodKey = key;
+            state.food = key;
             document.getElementById('selectedIcon').textContent = db[key].icon;
             document.getElementById('selectedText').textContent = db[key].name;
-            document.getElementById('customSelectOptions').classList.remove('open');
-            addXP(2);
+            toggleDropdown();
+            addXP(5);
             calculate();
         }
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `tab-${mode}`));
-            document.getElementById('inputLabel').textContent = mode === 'toWeight' ? 'Unità' : 'Grammi';
+        function setMode(m) {
+            state.mode = m;
+            document.getElementById('tab-toWeight').classList.toggle('active', m === 'toWeight');
+            document.getElementById('tab-toTool').classList.toggle('active', m === 'toTool');
+            document.getElementById('inputLabel').textContent = m === 'toWeight' ? 'Unità' : 'Grammi';
             calculate();
         }
 
-        function selectTool(tool) {
-            currentTool = tool;
-            document.querySelectorAll('.selectable-card').forEach(b => b.classList.toggle('active', b.id === `btn-${tool}`));
+        function selectTool(t) {
+            state.tool = t;
+            document.querySelectorAll('.selectable-card').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${t}`));
             calculate();
         }
 
         function calculate() {
-            const food = db[currentFoodKey];
-            const inputVal = parseFloat(document.getElementById('mainInput').value) || 0;
-            const unitWeight = food.weights[currentTool];
+            const food = db[state.food];
+            const val = Math.max(0, parseFloat(document.getElementById('mainInput').value) || 0);
+            const unitW = food.weights[state.tool];
             const helper = document.getElementById('quantityHelper');
-
             let weightG = 0;
-            if (currentMode === 'toWeight') {
-                weightG = Math.round(unitWeight * inputVal);
+
+            if (state.mode === 'toWeight') {
+                weightG = Math.round(val * unitW);
                 document.getElementById('mainResult').textContent = weightG + 'g';
                 helper.classList.add('hidden');
             } else {
-                weightG = inputVal;
-                const units = (inputVal / unitWeight).toFixed(1);
+                weightG = val;
+                const units = (val / unitW).toFixed(1);
                 document.getElementById('mainResult').textContent = units + 'u';
-                
                 helper.classList.remove('hidden');
-                document.getElementById('helperIcon').src = toolIcons[currentTool];
                 
-                const integerPart = Math.floor(units);
-                const decimalPart = units - integerPart;
-                let description = `Riempi **${integerPart}** ${currentTool}${integerPart !== 1 ? (currentTool.endsWith('a') ? 'e' : 'i') : ''}`;
-                
-                if (decimalPart >= 0.8) description = `Riempi quasi **${integerPart + 1}** ${currentTool}${integerPart + 1 !== 1 ? (currentTool.endsWith('a') ? 'e' : 'i') : ''}`;
-                else if (decimalPart >= 0.4) description += ` e **metà** di un altro.`;
-                else if (decimalPart > 0) description += ` e un **pizzico**.`;
-                else description += ` esatti.`;
-
-                document.getElementById('helperText').innerHTML = description.replace(/\*\*(.*?)\*\*/g, '<span class="text-amber-600 font-900">$1</span>');
+                const integer = Math.floor(units);
+                const decimal = units - integer;
+                let desc = `Usa ${integer} ${state.tool}${integer !== 1 ? 'i' : ''}`;
+                if (decimal > 0.7) desc = `Quasi ${integer + 1} ${state.tool}i`;
+                else if (decimal > 0.3) desc += ` e mezzo`;
+                else if (decimal > 0) desc += ` e un pizzico`;
+                document.getElementById('helperText').textContent = desc;
             }
 
-            const ratio = weightG / 100;
-            document.getElementById('kcalResult').textContent = Math.round(food.kcal * ratio) + ' KCAL';
-            document.getElementById('carbsValue').textContent = (food.c * ratio).toFixed(1) + 'g';
-            document.getElementById('proteinValue').textContent = (food.p * ratio).toFixed(1) + 'g';
-            document.getElementById('fatsValue').textContent = (food.f * ratio).toFixed(1) + 'g';
-            document.getElementById('carbsBar').style.width = Math.min(100, (food.c)) + '%';
-            document.getElementById('proteinBar').style.width = Math.min(100, (food.p * 2)) + '%'; 
-            document.getElementById('fatsBar').style.width = Math.min(100, (food.f)) + '%';
-        }
-
-        function loadDailyTrivia() {
-            currentQuestionObj = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
-            document.getElementById('triviaQuestion').textContent = currentQuestionObj.q;
-            const optCont = document.getElementById('triviaOptions');
-            optCont.innerHTML = '';
-            currentQuestionObj.a.forEach((ans, idx) => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn w-full text-left p-3 rounded-xl bg-white border border-slate-200 text-[11px] font-bold text-slate-600 hover:border-indigo-300 transition-all";
-                btn.textContent = ans;
-                btn.onclick = () => {
-                    selectedTriviaOption = idx;
-                    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                };
-                optCont.appendChild(btn);
-            });
-        }
-
-        function confirmTrivia() {
-            if (selectedTriviaOption === null || userState.dailyTriviaDone) return;
-            userState.dailyTriviaDone = true;
-            const content = document.getElementById('triviaContent');
-            const feedback = document.getElementById('triviaFeedback');
-            const fIcon = document.getElementById('feedbackIcon');
-            const fTitle = document.getElementById('feedbackTitle');
-            const fText = document.getElementById('feedbackText');
-            const container = document.getElementById('triviaContainer');
-
-            content.classList.add('hidden');
-            feedback.classList.remove('hidden');
-            feedback.classList.add('flex');
-
-            if (selectedTriviaOption === currentQuestionObj.c) {
-                fIcon.textContent = "⭐️";
-                fTitle.textContent = "Eccellente!";
-                fTitle.className = "text-sm font-900 uppercase tracking-tighter mb-1 text-green-600";
-                fText.textContent = "Risposta corretta. " + currentQuestionObj.e;
-                container.classList.add('bg-green-50', 'border-green-200');
-                addXP(50);
-            } else {
-                fIcon.textContent = "👨‍🍳";
-                fTitle.textContent = "Quasi Corretto...";
-                fTitle.className = "text-sm font-900 uppercase tracking-tighter mb-1 text-orange-500";
-                fText.innerHTML = `La risposta corretta era: <span class="font-bold text-slate-700">${currentQuestionObj.a[currentQuestionObj.c]}</span>.<br>${currentQuestionObj.e}`;
-                container.classList.add('bg-orange-50', 'border-orange-200');
-            }
-            setTimeout(() => { container.classList.add('completed'); }, 6000);
-        }
-
-        document.getElementById('mainInput').addEventListener('input', calculate);
-        window.onload = init;
-    </script>
-</body>
-</html>
+            const r = weightG / 100;
+            document.getElementById('kcalResult').textContent = Math.round(food.kcal * r) + ' KCAL';
+            document.getElementById('carbsValue').textContent = (food.c * r).toFixed(1) + 'g';
+            document.getElementById('proteinValue').textContent
