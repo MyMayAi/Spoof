@@ -74,6 +74,7 @@
             transition: all 0.2s ease;
             border: 2px solid #f1f5f9;
             background: white;
+            min-height: 72px; /* Assicura altezza minima */
         }
 
         .selectable-card.active {
@@ -161,25 +162,25 @@
                 </div>
             </section>
 
-            <!-- 2. Utensile -->
+            <!-- 2. Utensile - Migliorato layout e font-size -->
             <section id="toolSection">
                 <label id="toolLabel" class="text-[11px] font-800 text-slate-400 uppercase tracking-widest block mb-3">Scegli lo Strumento</label>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="selectTool('cucchiaio')" id="btn-cucchiaio" class="selectable-card active p-4 rounded-2xl flex items-center space-x-4 shadow-sm">
-                        <span class="text-3xl">🥄</span>
-                        <span class="text-[11px] font-bold uppercase text-slate-600">Cucchiaio</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="selectTool('cucchiaio')" id="btn-cucchiaio" class="selectable-card active px-3 py-2 rounded-2xl flex items-center space-x-3 shadow-sm overflow-hidden">
+                        <span class="text-2xl flex-shrink-0">🥄</span>
+                        <span class="text-[10px] font-bold uppercase text-slate-600 leading-tight text-left">Cucchiaio</span>
                     </button>
-                    <button onclick="selectTool('cucchiaino')" id="btn-cucchiaino" class="selectable-card p-4 rounded-2xl flex items-center space-x-4 shadow-sm">
-                        <span class="text-2xl">🥄</span>
-                        <span class="text-[11px] font-bold uppercase text-slate-600">Cucchiaino</span>
+                    <button onclick="selectTool('cucchiaino')" id="btn-cucchiaino" class="selectable-card px-3 py-2 rounded-2xl flex items-center space-x-3 shadow-sm overflow-hidden">
+                        <span class="text-xl flex-shrink-0">🥄</span>
+                        <span class="text-[10px] font-bold uppercase text-slate-600 leading-tight text-left">Cucchiaino</span>
                     </button>
-                    <button onclick="selectTool('tazzina')" id="btn-tazzina" class="selectable-card p-4 rounded-2xl flex items-center space-x-4 shadow-sm">
-                        <span class="text-3xl">☕</span>
-                        <span class="text-[11px] font-bold uppercase text-slate-600">Tazzina</span>
+                    <button onclick="selectTool('tazzina')" id="btn-tazzina" class="selectable-card px-3 py-2 rounded-2xl flex items-center space-x-3 shadow-sm overflow-hidden">
+                        <span class="text-2xl flex-shrink-0">☕</span>
+                        <span class="text-[10px] font-bold uppercase text-slate-600 leading-tight text-left">Tazzina</span>
                     </button>
-                    <button onclick="selectTool('bicchiere')" id="btn-bicchiere" class="selectable-card p-4 rounded-2xl flex items-center space-x-4 shadow-sm">
-                        <span class="text-3xl">🥛</span>
-                        <span class="text-[11px] font-bold uppercase text-slate-600">Bicchiere</span>
+                    <button onclick="selectTool('bicchiere')" id="btn-bicchiere" class="selectable-card px-3 py-2 rounded-2xl flex items-center space-x-3 shadow-sm overflow-hidden">
+                        <span class="text-2xl flex-shrink-0">🥛</span>
+                        <span class="text-[10px] font-bold uppercase text-slate-600 leading-tight text-left">Bicchiere</span>
                     </button>
                 </div>
             </section>
