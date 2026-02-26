@@ -1,26 +1,25 @@
-const CACHE_NAME = 'chef-academy-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'chef-v3';
+const ASSETS = [
   './',
   './index.html',
   './manifest.json',
- './spoon.png',     // Aggiunto
-  './teaspoon.png' // Aggiunto
+  './chef-hat.png',
+  './flour.png',
+  './glass.png',
+  './lemon.png',
+  './mug.png',
+  './oil.png',
+  './salt.png',
+  './spoon.png',
+  './sugar.png',
+  './teaspoon.png',
+  './vinegar.png'
 ];
 
-// Installazione: salva i file nella memoria del telefono
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
 });
 
-// Gestione richieste: se non c'è internet, usa la cache
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+self.addEventListener('fetch', (e) => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
