@@ -17,9 +17,19 @@
         .selectable-card.active { border-color: #f59e0b; background: #fffbeb; transform: scale(1.05); }
         #customSelectOptions { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.3s ease-out; position: absolute; z-index: 100; left: 0; right: 0; top: 100%; }
         #customSelectOptions.open { max-height: 500px; opacity: 1; overflow-y: auto; border: 1px solid #e2e8f0; background: white; border-radius: 1.5rem; margin-top: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        
+        /* Stile Input Evidenziato */
+        .input-glow { border: 3px solid #f59e0b; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
+        .input-empty { border: 3px solid #f59e0b; animation: pulse-border 2s infinite; }
+        
+        @keyframes pulse-border {
+            0% { border-color: #f59e0b; box-shadow: 0 0 0px rgba(245, 158, 11, 0.2); }
+            50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
+            100% { border-color: #f59e0b; box-shadow: 0 0 0px rgba(245, 158, 11, 0.2); }
+        }
+
         input[type="number"] { -moz-appearance: textfield; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        /* Animazione per le icone che appaiono */
         .icon-pop { animation: pop 0.3s ease-out forwards; }
         @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
@@ -34,7 +44,7 @@
                     <img src="chef-hat.png" class="w-10 h-10 object-contain" alt="Chef">
                 </div>
                 <div class="text-left">
-                    <h2 id="rankTitle" class="text-base font-extrabold text-amber-500 uppercase">AIUTO CUOCO</h2>
+                    <h2 id="rankTitle" class="text-base font-extrabold text-amber-500 uppercase leading-tight">AIUTO CUOCO</h2>
                     <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Livello <span id="levelLabel">1</span> • <span id="xpLabel">0/100 XP</span></p>
                     <div class="w-28 bg-slate-800 h-1 rounded-full mt-2 overflow-hidden">
                         <div id="xpBar" class="h-full bg-amber-500 w-0 transition-all duration-500"></div>
@@ -82,20 +92,19 @@
             </div>
 
             <div class="space-y-4">
-                <div class="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-100 flex items-center justify-between">
-                    <div class="w-1/2 text-center border-r border-slate-200">
-                        <input type="number" id="mainInput" value="100" class="w-full text-center text-4xl font-extrabold text-slate-800 bg-transparent border-none focus:ring-0">
-                        <p id="inputLabel" class="text-[9px] font-bold text-slate-400 uppercase mt-1">Grammi</p>
+                <div id="inputWrapper" class="bg-white p-4 rounded-[1.5rem] flex items-center justify-between input-empty shadow-sm transition-all">
+                    <div class="w-1/2 text-center border-r border-slate-100">
+                        <input type="number" id="mainInput" placeholder="0" class="w-full text-center text-5xl font-extrabold text-slate-800 bg-transparent border-none focus:ring-0 placeholder-slate-200">
+                        <p id="inputLabel" class="text-[9px] font-bold text-amber-500 uppercase mt-1">Grammi</p>
                     </div>
                     <div class="w-1/2 text-center">
-                        <p id="kcalResult" class="text-2xl font-extrabold text-amber-600">0</p>
+                        <p id="kcalResult" class="text-2xl font-extrabold text-slate-300">0</p>
                         <p class="text-[9px] font-bold text-slate-400 uppercase">KCAL Totali</p>
                     </div>
                 </div>
 
                 <div class="bg-amber-500 p-6 rounded-[2.5rem] shadow-lg text-white min-h-[160px] flex flex-col items-center justify-center transition-all">
-                    <div id="visualResult" class="flex flex-wrap justify-center gap-3 mb-4">
-                        </div>
+                    <div id="visualResult" class="flex flex-wrap justify-center gap-3 mb-4"></div>
                     <div id="mainResult" class="text-xl font-extrabold bg-black/20 px-4 py-1 rounded-full uppercase tracking-widest">
                         0 Unità
                     </div>
@@ -142,7 +151,6 @@
             Object.keys(db).forEach(key => {
                 const div = document.createElement('div');
                 div.className = "px-6 py-5 flex items-center space-x-6 cursor-pointer border-b border-slate-50 hover:bg-amber-50 transition-colors";
-                // Icone Menu a tendina ingrandite del 40% (w-14)
                 div.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain"> <span class="text-xl font-extrabold text-slate-700 uppercase">${db[key].name}</span>`;
                 div.onclick = () => selectFood(key);
                 container.appendChild(div);
@@ -177,13 +185,25 @@
 
         function calculate() {
             const food = db[state.food];
-            const val = Math.max(0, parseFloat(document.getElementById('mainInput').value) || 0);
+            const inputVal = document.getElementById('mainInput').value;
+            const val = Math.max(0, parseFloat(inputVal) || 0);
             const unitWeight = food.weights[state.tool];
             const visualContainer = document.getElementById('visualResult');
-            visualContainer.innerHTML = '';
+            const wrapper = document.getElementById('inputWrapper');
+            const kcalEl = document.getElementById('kcalResult');
             
-            let weightG;
-            let units;
+            // Gestione Bordo Dinamico
+            if (inputVal === "" || val === 0) {
+                wrapper.classList.add('input-empty');
+                kcalEl.classList.replace('text-amber-600', 'text-slate-300');
+            } else {
+                wrapper.classList.remove('input-empty');
+                wrapper.classList.add('input-glow');
+                kcalEl.classList.replace('text-slate-300', 'text-amber-600');
+            }
+
+            visualContainer.innerHTML = '';
+            let weightG, units;
 
             if (state.mode === 'toTool') {
                 weightG = val;
@@ -195,32 +215,28 @@
                 document.getElementById('mainResult').textContent = weightG + ' GRAMMI';
             }
 
-            // CREAZIONE DELLE ICONE GRAFICHE
             const fullIcons = Math.floor(units);
             const remainder = units - fullIcons;
 
-            // Icone piene
-            for(let i=0; i < Math.min(fullIcons, 15); i++) {
-                const img = document.createElement('img');
-                img.src = toolIcons[state.tool];
-                img.className = "w-12 h-12 object-contain icon-pop";
-                visualContainer.appendChild(img);
+            if (val > 0) {
+                for(let i=0; i < Math.min(fullIcons, 15); i++) {
+                    const img = document.createElement('img');
+                    img.src = toolIcons[state.tool];
+                    img.className = "w-12 h-12 object-contain icon-pop";
+                    visualContainer.appendChild(img);
+                }
+                if (remainder > 0.1 && fullIcons < 15) {
+                    const img = document.createElement('img');
+                    img.src = toolIcons[state.tool];
+                    img.className = "w-12 h-12 object-contain icon-pop";
+                    img.style.opacity = remainder + 0.2;
+                    img.style.transform = `scale(${0.6 + (remainder * 0.4)})`;
+                    visualContainer.appendChild(img);
+                }
             }
 
-            // Icona parziale (se > 0.1)
-            if (remainder > 0.1 && fullIcons < 15) {
-                const img = document.createElement('img');
-                img.src = toolIcons[state.tool];
-                img.className = "w-12 h-12 object-contain icon-pop";
-                // Se è meno della metà, la facciamo molto trasparente e piccola
-                img.style.opacity = remainder + 0.2;
-                img.style.transform = `scale(${0.6 + (remainder * 0.4)})`;
-                visualContainer.appendChild(img);
-            }
-
-            // Aggiornamento Valori Nutrizionali
             const ratio = weightG / 100;
-            document.getElementById('kcalResult').textContent = Math.round(food.kcal * ratio);
+            kcalEl.textContent = Math.round(food.kcal * ratio);
             document.getElementById('carbsValue').textContent = (food.c * ratio).toFixed(1) + 'g';
             document.getElementById('proteinValue').textContent = (food.p * ratio).toFixed(1) + 'g';
             document.getElementById('fatsValue').textContent = (food.f * ratio).toFixed(1) + 'g';
