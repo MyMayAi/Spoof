@@ -18,10 +18,7 @@
         #customSelectOptions { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.3s ease-out; position: absolute; z-index: 100; left: 0; right: 0; top: 100%; }
         #customSelectOptions.open { max-height: 500px; opacity: 1; overflow-y: auto; border: 1px solid #e2e8f0; background: white; border-radius: 1.5rem; margin-top: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         
-        /* Stile Input Evidenziato */
-        .input-glow { border: 3px solid #f59e0b; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
         .input-empty { border: 3px solid #f59e0b; animation: pulse-border 2s infinite; }
-        
         @keyframes pulse-border {
             0% { border-color: #f59e0b; box-shadow: 0 0 0px rgba(245, 158, 11, 0.2); }
             50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
@@ -30,7 +27,7 @@
 
         input[type="number"] { -moz-appearance: textfield; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .icon-pop { animation: pop 0.3s ease-out forwards; }
+        .icon-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
@@ -63,7 +60,7 @@
                 <div onclick="toggleDropdown()" class="bg-slate-50 rounded-2xl px-5 py-4 flex items-center justify-between cursor-pointer border-2 border-transparent hover:border-amber-200 transition-all">
                     <div class="flex items-center space-x-4">
                         <img id="selectedIcon" src="flour.png" class="w-11 h-11 object-contain">
-                        <span id="selectedText" class="font-extrabold text-slate-700 text-xl uppercase">Farina</span>
+                        <span id="selectedText" class="font-extrabold text-slate-700 text-xl uppercase tracking-tight">Farina</span>
                     </div>
                     <span class="text-slate-400 text-xs">▼</span>
                 </div>
@@ -92,39 +89,38 @@
             </div>
 
             <div class="space-y-4">
-                <div id="inputWrapper" class="bg-white p-4 rounded-[1.5rem] flex items-center justify-between input-empty shadow-sm transition-all">
+                <div id="inputWrapper" class="bg-white p-4 rounded-[1.5rem] flex items-center justify-between input-empty shadow-sm transition-all border-3">
                     <div class="w-1/2 text-center border-r border-slate-100">
                         <input type="number" id="mainInput" placeholder="0" class="w-full text-center text-5xl font-extrabold text-slate-800 bg-transparent border-none focus:ring-0 placeholder-slate-200">
-                        <p id="inputLabel" class="text-[9px] font-bold text-amber-500 uppercase mt-1">Grammi</p>
+                        <p id="inputLabel" class="text-[9px] font-bold text-amber-500 uppercase mt-1 tracking-widest">Grammi</p>
                     </div>
                     <div class="w-1/2 text-center">
                         <p id="kcalResult" class="text-2xl font-extrabold text-slate-300">0</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">KCAL Totali</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">KCAL Totali</p>
                     </div>
                 </div>
 
-                <div class="bg-amber-500 p-6 rounded-[2.5rem] shadow-lg text-white min-h-[160px] flex flex-col items-center justify-center transition-all">
-                    <div id="visualResult" class="flex flex-wrap justify-center gap-3 mb-4"></div>
-                    <div id="mainResult" class="text-xl font-extrabold bg-black/20 px-4 py-1 rounded-full uppercase tracking-widest">
-                        0 Unità
+                <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl text-white min-h-[180px] flex flex-col items-center justify-center transition-all border border-white/5">
+                    <div id="visualResult" class="flex flex-wrap justify-center gap-4 mb-6">
+                        </div>
+                    <div id="mainResult" class="text-sm font-extrabold bg-amber-500 text-slate-900 px-6 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg">
+                        Inizia a cucinare
                     </div>
                 </div>
             </div>
 
-            <div class="bg-slate-900 rounded-[2rem] p-5 text-white shadow-xl">
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="text-center">
-                        <div id="carbsValue" class="text-lg font-extrabold text-blue-400">0g</div>
-                        <p class="text-[8px] text-slate-500 uppercase font-bold mt-1">Carbi</p>
-                    </div>
-                    <div class="text-center border-x border-slate-800">
-                        <div id="proteinValue" class="text-lg font-extrabold text-red-400">0g</div>
-                        <p class="text-[8px] text-slate-500 uppercase font-bold mt-1">Proteine</p>
-                    </div>
-                    <div class="text-center">
-                        <div id="fatsValue" class="text-lg font-extrabold text-yellow-400">0g</div>
-                        <p class="text-[8px] text-slate-500 uppercase font-bold mt-1">Grassi</p>
-                    </div>
+            <div class="grid grid-cols-3 gap-2 px-2">
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center shadow-sm">
+                    <div id="carbsValue" class="text-sm font-extrabold text-blue-500 leading-none">0g</div>
+                    <p class="text-[7px] text-slate-400 uppercase font-bold mt-1">Carboidrati</p>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center shadow-sm">
+                    <div id="proteinValue" class="text-sm font-extrabold text-red-500 leading-none">0g</div>
+                    <p class="text-[7px] text-slate-400 uppercase font-bold mt-1">Proteine</p>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center shadow-sm">
+                    <div id="fatsValue" class="text-sm font-extrabold text-amber-600 leading-none">0g</div>
+                    <p class="text-[7px] text-slate-400 uppercase font-bold mt-1">Grassi</p>
                 </div>
             </div>
 
@@ -151,7 +147,7 @@
             Object.keys(db).forEach(key => {
                 const div = document.createElement('div');
                 div.className = "px-6 py-5 flex items-center space-x-6 cursor-pointer border-b border-slate-50 hover:bg-amber-50 transition-colors";
-                div.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain"> <span class="text-xl font-extrabold text-slate-700 uppercase">${db[key].name}</span>`;
+                div.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain"> <span class="text-xl font-extrabold text-slate-700 uppercase tracking-tighter">${db[key].name}</span>`;
                 div.onclick = () => selectFood(key);
                 container.appendChild(div);
             });
@@ -192,54 +188,53 @@
             const wrapper = document.getElementById('inputWrapper');
             const kcalEl = document.getElementById('kcalResult');
             
-            // Gestione Bordo Dinamico
             if (inputVal === "" || val === 0) {
                 wrapper.classList.add('input-empty');
                 kcalEl.classList.replace('text-amber-600', 'text-slate-300');
+                document.getElementById('mainResult').textContent = "Inizia a cucinare";
+                visualContainer.innerHTML = '';
             } else {
                 wrapper.classList.remove('input-empty');
-                wrapper.classList.add('input-glow');
                 kcalEl.classList.replace('text-slate-300', 'text-amber-600');
-            }
+                
+                visualContainer.innerHTML = '';
+                let weightG, units;
 
-            visualContainer.innerHTML = '';
-            let weightG, units;
+                if (state.mode === 'toTool') {
+                    weightG = val;
+                    units = val / unitWeight;
+                    document.getElementById('mainResult').textContent = units.toFixed(1) + ' UNITÀ';
+                } else {
+                    units = val;
+                    weightG = val * unitWeight;
+                    document.getElementById('mainResult').textContent = weightG + ' GRAMMI';
+                }
 
-            if (state.mode === 'toTool') {
-                weightG = val;
-                units = val / unitWeight;
-                document.getElementById('mainResult').textContent = units.toFixed(1) + ' UNITÀ';
-            } else {
-                units = val;
-                weightG = val * unitWeight;
-                document.getElementById('mainResult').textContent = weightG + ' GRAMMI';
-            }
+                const fullIcons = Math.floor(units);
+                const remainder = units - fullIcons;
 
-            const fullIcons = Math.floor(units);
-            const remainder = units - fullIcons;
-
-            if (val > 0) {
-                for(let i=0; i < Math.min(fullIcons, 15); i++) {
+                // ICONE INGRANDITE (+50% -> w-18)
+                for(let i=0; i < Math.min(fullIcons, 10); i++) {
                     const img = document.createElement('img');
                     img.src = toolIcons[state.tool];
-                    img.className = "w-12 h-12 object-contain icon-pop";
+                    img.className = "w-18 h-18 object-contain icon-pop";
                     visualContainer.appendChild(img);
                 }
-                if (remainder > 0.1 && fullIcons < 15) {
+                if (remainder > 0.1 && fullIcons < 10) {
                     const img = document.createElement('img');
                     img.src = toolIcons[state.tool];
-                    img.className = "w-12 h-12 object-contain icon-pop";
-                    img.style.opacity = remainder + 0.2;
-                    img.style.transform = `scale(${0.6 + (remainder * 0.4)})`;
+                    img.className = "w-18 h-18 object-contain icon-pop";
+                    img.style.opacity = remainder + 0.3;
+                    img.style.transform = `scale(${0.7 + (remainder * 0.3)})`;
                     visualContainer.appendChild(img);
                 }
-            }
 
-            const ratio = weightG / 100;
-            kcalEl.textContent = Math.round(food.kcal * ratio);
-            document.getElementById('carbsValue').textContent = (food.c * ratio).toFixed(1) + 'g';
-            document.getElementById('proteinValue').textContent = (food.p * ratio).toFixed(1) + 'g';
-            document.getElementById('fatsValue').textContent = (food.f * ratio).toFixed(1) + 'g';
+                const ratio = weightG / 100;
+                kcalEl.textContent = Math.round(food.kcal * ratio);
+                document.getElementById('carbsValue').textContent = (food.c * ratio).toFixed(1) + 'g';
+                document.getElementById('proteinValue').textContent = (food.p * ratio).toFixed(1) + 'g';
+                document.getElementById('fatsValue').textContent = (food.f * ratio).toFixed(1) + 'g';
+            }
         }
 
         function addXP(n) {
