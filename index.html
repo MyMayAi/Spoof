@@ -3,88 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chef Academy - Pro Scale</title>
+    <title>Chef Academy - Pro Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; color: #1e293b; touch-action: none; overflow: hidden; user-select: none; }
         
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #ffffff; 
-            color: #1e293b; 
-            touch-action: none; 
-            overflow: hidden; 
-            user-select: none;
-        }
-        
-        /* Slider Righello */
-        .ruler-container { 
-            position: relative; 
-            width: 100%; 
-            height: 100px; 
-            overflow: hidden; 
-            cursor: grab; 
-            background: #f8fafc; 
-            border-top: 1px solid #f1f5f9; 
-        }
-        .ruler-track { 
-            display: flex; 
-            align-items: flex-end; 
-            height: 100%; 
-            position: absolute; 
-            left: 50%; 
-            will-change: transform; 
-        }
+        .ruler-container { position: relative; width: 100%; height: 100px; overflow: hidden; cursor: grab; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+        .ruler-track { display: flex; align-items: flex-end; height: 100%; position: absolute; left: 50%; will-change: transform; }
         .tack { width: 2px; background: #e2e8f0; margin-right: 20px; flex-shrink: 0; }
         .tack.major { height: 35px; background: #cbd5e1; position: relative; }
-        .tack.major::after { 
-            content: attr(data-val); 
-            position: absolute; 
-            top: -22px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            font-size: 9px; 
-            font-weight: 800; 
-            color: #94a3b8; 
-        }
+        .tack.major::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 800; color: #94a3b8; }
         .tack.minor { height: 15px; }
-        .ruler-pointer { 
-            position: absolute; 
-            left: 50%; 
-            bottom: 0; 
-            width: 4px; 
-            height: 50px; 
-            background: #f59e0b; 
-            transform: translateX(-50%); 
-            z-index: 20; 
-            border-radius: 4px 4px 0 0; 
-        }
+        .ruler-pointer { position: absolute; left: 50%; bottom: 0; width: 4px; height: 50px; background: #f59e0b; transform: translateX(-50%); z-index: 20; border-radius: 4px 4px 0 0; }
 
-        /* Card Ingredienti (+20%) */
-        .food-card { 
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            border: 2px solid transparent; 
-        }
-        .food-card.active { 
-            background: #fffbeb; 
-            border-color: #f59e0b; 
-            transform: scale(1.05); 
-        }
+        .food-card { transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 2px solid transparent; }
+        .food-card.active { background: #fffbeb; border-color: #f59e0b; transform: scale(1.05); }
 
-        /* Card Strumenti */
-        .tool-card.active { 
-            background: #1e293b !important; 
-            color: white !important; 
-            border-color: #1e293b !important; 
-            transform: translateY(-4px); 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
-        }
+        .tool-card.active { background: #1e293b !important; color: white !important; border-color: #1e293b !important; transform: translateY(-4px); }
         .tool-card.active img { filter: brightness(0) invert(1); }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
         .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
+        @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="flex justify-center">
@@ -92,31 +33,30 @@
     <div class="w-full max-w-[460px] h-screen flex flex-col bg-white">
         
         <div class="px-6 pt-6 pb-2">
-            <div class="bg-slate-900 rounded-[2.5rem] p-5 shadow-2xl text-white relative">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <img id="heroIcon" src="spoon.png" class="w-14 h-14 object-contain">
-                            <div id="multiplier" class="absolute -bottom-1 -right-1 bg-amber-500 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-lg">x0</div>
-                        </div>
-                        <div>
-                            <span id="resultUnits" class="text-4xl font-black">0.0</span>
-                            <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Unità</p>
-                        </div>
+            <div class="bg-slate-900 rounded-[2.5rem] p-5 shadow-2xl text-white flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <img id="heroIcon" src="spoon.png" class="w-14 h-14 object-contain">
+                        <div id="multiplier" class="absolute -bottom-1 -right-1 bg-amber-500 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-lg">x0</div>
                     </div>
-                    <div class="flex flex-col items-end">
-                        <button onclick="saveFavorite()" class="mb-2 bg-white/10 p-2 rounded-full active:scale-90 transition-all">
-                            <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
-                        </button>
-                        <div class="text-right">
-                            <span id="kcalVal" class="text-lg font-bold text-amber-500">0</span>
-                            <p class="text-[7px] font-bold text-slate-600 uppercase">Kcal</p>
-                        </div>
+                    <div>
+                        <span id="resultUnits" class="text-4xl font-black">0.0</span>
+                        <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Unità</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end">
+                    <button onclick="saveFavorite()" class="mb-2 bg-white/10 p-2 rounded-full active:scale-90 transition-all">
+                        <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
+                    </button>
+                    <div class="text-right">
+                        <span id="kcalVal" class="text-lg font-bold text-amber-500">0</span>
+                        <p class="text-[7px] font-bold text-slate-600 uppercase">Kcal</p>
                     </div>
                 </div>
             </div>
+            
             <div id="favoritesList" class="flex space-x-2 mt-4 overflow-x-auto no-scrollbar min-h-[35px] items-center">
-                <span class="text-[9px] font-bold text-slate-300 uppercase">Tocca la bandierina per salvare</span>
+                <span class="text-[9px] font-bold text-slate-300 uppercase">I tuoi salvati appariranno qui</span>
             </div>
         </div>
 
@@ -128,9 +68,7 @@
             <div class="flex items-center justify-between px-8 mb-2">
                 <button onclick="resetGrams()" class="text-[10px] font-black text-red-500 uppercase bg-red-50 border border-red-100 px-4 py-1.5 rounded-full">Reset</button>
                 <div class="text-center">
-                    <div class="text-3xl font-black text-slate-800 leading-none">
-                        <span id="gramsDisplay">0</span><span class="text-base text-amber-500 ml-1">g</span>
-                    </div>
+                    <div class="text-3xl font-black text-slate-800 leading-none"><span id="gramsDisplay">0</span><span class="text-base text-amber-500 ml-1">g</span></div>
                 </div>
                 <div class="w-16"></div>
             </div>
@@ -220,20 +158,32 @@
 
         function saveFavorite() {
             if (state.grams === 0) return;
-            const fav = { grams: state.grams, food: state.food, name: db[state.food].name };
-            if (!state.favorites.some(f => f.grams === fav.grams && f.food === fav.food)) {
-                state.favorites.unshift(fav);
-                if (state.favorites.length > 5) state.favorites.pop();
-                renderFavorites();
-            }
+            const id = Date.now();
+            const fav = { id, grams: state.grams, food: state.food, name: db[state.food].name };
+            state.favorites.unshift(fav);
+            if (state.favorites.length > 5) state.favorites.pop();
+            renderFavorites();
+        }
+
+        function deleteFavorite(id, event) {
+            event.stopPropagation(); // Impedisce di attivare il preferito mentre lo si cancella
+            state.favorites = state.favorites.filter(f => f.id !== id);
+            renderFavorites();
         }
 
         function renderFavorites() {
             const list = document.getElementById('favoritesList');
             list.innerHTML = '';
+            if(state.favorites.length === 0) {
+                list.innerHTML = '<span class="text-[9px] font-bold text-slate-300 uppercase">Salva i tuoi pesi comuni</span>';
+                return;
+            }
             state.favorites.forEach(f => {
+                const container = document.createElement('div');
+                container.className = "flex-shrink-0 relative group animate-pop";
+                
                 const btn = document.createElement('button');
-                btn.className = "bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[9px] font-black uppercase flex-shrink-0 animate-pop border border-amber-200";
+                btn.className = "bg-amber-100 text-amber-700 pl-3 pr-8 py-1.5 rounded-full text-[9px] font-black uppercase border border-amber-200";
                 btn.innerHTML = `${f.grams}g ${f.name}`;
                 btn.onclick = () => {
                     state.grams = f.grams;
@@ -242,7 +192,15 @@
                     trackDiv.style.transform = `translateX(${currentTranslate}px)`;
                     selectFood(f.food);
                 };
-                list.appendChild(btn);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = "absolute right-2 top-1/2 -translate-y-1/2 text-amber-900/40 hover:text-red-500 font-bold text-xs p-1";
+                delBtn.innerHTML = "✕";
+                delBtn.onclick = (e) => deleteFavorite(f.id, e);
+
+                container.appendChild(btn);
+                container.appendChild(delBtn);
+                list.appendChild(container);
             });
         }
 
