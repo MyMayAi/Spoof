@@ -3,24 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
-    <title>Chef Academy - Full Experience</title>
+    
+    <title>Chef Academy - Peso Senza Bilancia</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; color: #1e293b; touch-action: none; overflow: hidden; user-select: none; }
         
-        #trash-zone { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(-100%); opacity: 0; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #ffffff; 
+            color: #1e293b; 
+            touch-action: none; 
+            overflow: hidden; 
+            user-select: none; 
+        }
+
+        /* Gestione Cestino */
+        #trash-zone { 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            transform: translateY(-100%); 
+            opacity: 0; 
+            z-index: 100;
+        }
         #trash-zone.active { transform: translateY(0); opacity: 1; }
-        #trash-zone.hover { background: #fee2e2; transform: scale(1.05); border-color: #ef4444; }
+        #trash-zone.hover { background: #fee2e2; transform: scale(1.05); border-color: #ef4444; color: #ef4444; }
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(5px) rotate(2deg); }
+            75% { transform: translateY(5px) rotate(-2deg); }
+        }
 
-        .fly-save { position: absolute; animation: flyUp 0.6s ease-out forwards; color: #f59e0b; font-weight: 800; pointer-events: none; z-index: 100; }
-        @keyframes flyUp { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(0, -100px) scale(1.5); opacity: 0; } }
+        /* Animazione Volo Salvataggio */
+        .fly-save {
+            position: absolute;
+            animation: flyUp 0.6s ease-out forwards;
+            color: #f59e0b;
+            font-weight: 800;
+            pointer-events: none;
+            z-index: 150;
+        }
+        @keyframes flyUp {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -150px) scale(2); opacity: 0; }
+        }
 
+        /* Ruler UI */
         .ruler-container { position: relative; width: 100%; height: 100px; overflow: hidden; cursor: grab; background: #f8fafc; border-top: 1px solid #f1f5f9; }
         .ruler-track { display: flex; align-items: flex-end; height: 100%; position: absolute; left: 50%; will-change: transform; }
         .tack { width: 2px; background: #e2e8f0; margin-right: 20px; flex-shrink: 0; }
@@ -29,10 +63,14 @@
         .tack.minor { height: 15px; }
         .ruler-pointer { position: absolute; left: 50%; bottom: 0; width: 4px; height: 50px; background: #f59e0b; transform: translateX(-50%); z-index: 20; border-radius: 4px 4px 0 0; }
 
+        /* Card Ingredienti */
         .food-card { transition: all 0.2s ease; border: 2px solid transparent; }
         .food-card.active { background: #fffbeb; border-color: #f59e0b; transform: scale(1.05); }
 
-        .fav-tag.dragging { position: fixed; z-index: 9999; pointer-events: none; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); opacity: 0.9; }
+        /* Tag Preferiti Draggable */
+        .fav-tag { cursor: grab; touch-action: none; position: relative; transition: transform 0.2s; }
+        .fav-tag.dragging { position: fixed; z-index: 200; pointer-events: none; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); opacity: 0.9; }
+
         .tool-card.active { background: #1e293b !important; color: white !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
@@ -41,29 +79,31 @@
 
     <div class="w-full max-w-[460px] h-screen flex flex-col bg-white relative overflow-hidden">
         
-        <div id="trash-zone" class="absolute top-0 left-0 w-full h-24 bg-red-50 border-b-2 border-red-200 z-50 flex flex-col items-center justify-center text-red-500">
-            <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            <span class="text-[10px] font-black uppercase">Elimina</span>
+        <div id="trash-zone" class="absolute top-0 left-0 w-full h-24 bg-red-50 border-b-2 border-red-200 flex flex-col items-center justify-center text-red-400">
+            <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            <span class="text-[10px] font-black uppercase tracking-widest">Trascina qui per eliminare</span>
         </div>
 
         <div id="installBtn" class="hidden bg-amber-500 text-white p-2 text-center text-xs font-bold cursor-pointer">
-            Clicca qui per installare Chef Academy sul tuo telefono!
+            Aggiungi Chef Academy alla Home!
         </div>
 
         <div class="px-6 pt-8 pb-2">
-            <div id="displayMain" class="bg-slate-900 rounded-[2.5rem] p-5 shadow-2xl text-white relative flex items-center justify-between">
+            <div class="bg-slate-900 rounded-[2.5rem] p-5 shadow-2xl text-white relative flex items-center justify-between">
                 <div class="flex items-center space-x-5">
                     <div class="relative">
                         <img id="heroIcon" src="spoon.png" class="w-20 h-20 object-contain">
                         <div id="multiplier" class="absolute -bottom-1 -right-1 bg-amber-500 text-slate-900 text-[11px] font-black px-2.5 py-1 rounded-lg">x0</div>
                     </div>
                     <div>
-                        <span id="resultUnits" class="text-5xl font-black">0.0</span>
+                        <span id="resultUnits" class="text-5xl font-black leading-none">0.0</span>
                         <p class="text-[9px] font-bold text-slate-500 uppercase mt-1 tracking-widest">Unità</p>
                     </div>
                 </div>
-                <div class="flex flex-col items-end h-20 justify-between">
-                    <button onclick="saveFavorite(event)" class="bg-amber-500 text-slate-900 p-2.5 rounded-full active:scale-90 shadow-lg transition-all">
+                <div class="flex flex-col items-end h-20 justify-between py-1">
+                    <button id="saveBtn" onclick="saveFavorite(event)" class="bg-amber-500 text-slate-900 p-2.5 rounded-full active:scale-90 shadow-lg transition-all">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v12m6-6H6"></path></svg>
                     </button>
                     <div class="text-right bg-white/5 px-3 py-1 rounded-xl">
@@ -85,7 +125,9 @@
         <div class="bg-slate-50 border-t border-slate-100 pt-4">
             <div class="flex items-center justify-between px-8 mb-2">
                 <button onclick="resetGrams()" class="text-[10px] font-black text-red-500 uppercase bg-red-50 px-4 py-1.5 rounded-full">Reset</button>
-                <div class="text-3xl font-black text-slate-800"><span id="gramsDisplay">0</span><span class="text-base text-amber-500 ml-1">g</span></div>
+                <div class="text-3xl font-black text-slate-800">
+                    <span id="gramsDisplay">0</span><span class="text-base text-amber-500 ml-1">g</span>
+                </div>
                 <div class="w-16"></div>
             </div>
             <div class="ruler-container" id="ruler">
@@ -94,7 +136,7 @@
             </div>
         </div>
 
-        <div class="p-4 grid grid-cols-4 gap-3 bg-white">
+        <div class="p-4 grid grid-cols-4 gap-3 bg-white border-t border-slate-100">
             <button onclick="selectTool('cucchiaio')" id="tool-cucchiaio" class="tool-card active p-3 rounded-2xl bg-slate-50 flex flex-col items-center">
                 <img src="spoon.png" class="w-8 h-8 object-contain mb-1"><span class="text-[8px] font-black uppercase">Cucchiaio</span>
             </button>
@@ -111,26 +153,6 @@
     </div>
 
     <script>
-        // --- LOGICA PWA (INSTALLAZIONE) ---
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBtn').style.display = 'block';
-        });
-
-        document.getElementById('installBtn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('installBtn').style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        });
-
-        // --- IL RESTO DELLA LOGICA (AUDIO, DRAG, UI) ---
         const db = {
             farina: { name: "Farina", img: "flour.png", w: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120 }, kcal: 364 },
             olio: { name: "Olio", img: "oil.png", w: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180 }, kcal: 884 },
@@ -142,39 +164,24 @@
 
         let state = { food: 'farina', tool: 'cucchiaio', grams: 0, favorites: [] };
         let lastTickGrams = 0;
+        let dragItem = null, pressTimer = null;
+
+        // Audio Context per i suoni sintetici
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playTick() {
+        function playSound(freq, duration, type = 'sine', volume = 0.1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
 
-        function playSaveSound() {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-        }
-
-        function playTrashSound() {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        }
-
+        // --- Inizializzazione ---
         function init() {
             const grid = document.getElementById('ingredientGrid');
             Object.keys(db).forEach(key => {
@@ -185,61 +192,79 @@
                 card.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain mb-2"><span class="text-[10px] font-black uppercase text-slate-600">${db[key].name}</span>`;
                 grid.appendChild(card);
             });
+
             for(let i=0; i<=500; i+=5) {
                 const tack = document.createElement('div');
                 tack.className = i % 25 === 0 ? 'tack major' : 'tack minor';
                 if(i % 50 === 0) tack.setAttribute('data-val', i);
                 document.getElementById('track').appendChild(tack);
             }
+            updateUI();
         }
 
+        // --- Logica Righello ---
         const ruler = document.getElementById('ruler');
         let startX_r, currT_r = 0, prevT_r = 0, isDraggingRuler = false;
 
-        const handleRulerMove = (e) => {
+        const handleMove = (e) => {
             if (!isDraggingRuler) return;
             const x = e.touches ? e.touches[0].clientX : e.clientX;
             currT_r = Math.min(0, Math.max(-4500, prevT_r + (x - startX_r) * 1.5));
             document.getElementById('track').style.transform = `translateX(${currT_r}px)`;
             state.grams = Math.abs(Math.round(currT_r / 22) * 5);
-            if (state.grams !== lastTickGrams) { playTick(); lastTickGrams = state.grams; }
+            
+            if (state.grams !== lastTickGrams) {
+                playSound(800, 0.05, 'sine', 0.03); // Sound tick
+                lastTickGrams = state.grams;
+            }
             updateUI();
         };
 
-        ruler.addEventListener('touchstart', e => { isDraggingRuler = true; startX_r = e.touches[0].clientX; if(audioCtx.state==='suspended') audioCtx.resume(); });
-        ruler.addEventListener('mousedown', e => { isDraggingRuler = true; startX_r = e.clientX; if(audioCtx.state==='suspended') audioCtx.resume(); });
-        window.addEventListener('touchmove', handleRulerMove, { passive: false });
-        window.addEventListener('mousemove', handleRulerMove);
+        ruler.addEventListener('touchstart', e => { isDraggingRuler = true; startX_r = e.touches[0].clientX; });
+        ruler.addEventListener('mousedown', e => { isDraggingRuler = true; startX_r = e.clientX; });
+        window.addEventListener('touchmove', handleMove, { passive: false });
+        window.addEventListener('mousemove', handleMove);
         window.addEventListener('touchend', () => { isDraggingRuler = false; prevT_r = currT_r; });
         window.addEventListener('mouseup', () => { isDraggingRuler = false; prevT_r = currT_r; });
 
+        // --- Salvataggio con Animazione ---
         function saveFavorite(e) {
             if (state.grams === 0) return;
+            
+            // Animazione Volo
             const flyer = document.createElement('div');
             flyer.className = 'fly-save';
-            flyer.style.left = `${e.clientX}px`; flyer.style.top = `${e.clientY}px`;
+            flyer.style.left = `${e.clientX}px`;
+            flyer.style.top = `${e.clientY}px`;
             flyer.textContent = `+${state.grams}g`;
             document.body.appendChild(flyer);
             setTimeout(() => flyer.remove(), 600);
-            playSaveSound();
+
+            playSound(440, 0.2, 'triangle', 0.1); // Sound Save
+            
             const id = Date.now();
             state.favorites.unshift({ id, grams: state.grams, food: state.food, name: db[state.food].name });
             if (state.favorites.length > 5) state.favorites.pop();
             renderFavorites();
         }
 
-        let dragItem = null, pressTimer = null;
+        // --- Drag to Delete & Preferiti ---
         function renderFavorites() {
             const list = document.getElementById('favoritesList');
             list.innerHTML = '';
-            if(state.favorites.length === 0) { list.innerHTML = '<span class="text-[9px] font-bold text-slate-300 uppercase">Tieni premuto per eliminare</span>'; return; }
+            if(state.favorites.length === 0) {
+                list.innerHTML = '<span class="text-[9px] font-bold text-slate-300 uppercase">Tieni premuto per eliminare</span>';
+                return;
+            }
             state.favorites.forEach(f => {
                 const tag = document.createElement('div');
                 tag.className = "fav-tag bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[9px] font-black uppercase border border-amber-200 whitespace-nowrap";
                 tag.innerHTML = `${f.grams}g ${f.name}`;
+                
                 tag.addEventListener('touchstart', (e) => startPress(e, f, tag));
                 tag.addEventListener('mousedown', (e) => startPress(e, f, tag));
                 tag.addEventListener('click', () => { if(!dragItem) loadFavorite(f); });
+                
                 list.appendChild(tag);
             });
         }
@@ -267,21 +292,19 @@
             if (!dragItem) return;
             if (e.clientY < 120) {
                 state.favorites = state.favorites.filter(f => f.id !== dragItem.id);
-                playTrashSound();
+                playSound(150, 0.15, 'square', 0.1); // Sound Trash
+                const zone = document.getElementById('trash-zone');
+                zone.classList.add('shake');
+                setTimeout(() => zone.classList.remove('shake'), 400);
                 renderFavorites();
             }
             dragItem.element.classList.remove('dragging');
-            dragItem.element.style = ""; dragItem = null;
+            dragItem.element.style = "";
+            dragItem = null;
             document.getElementById('trash-zone').classList.remove('active', 'hover');
         });
 
-        function loadFavorite(f) {
-            state.grams = f.grams;
-            currT_r = -(f.grams / 5 * 22); prevT_r = currT_r;
-            document.getElementById('track').style.transform = `translateX(${currT_r}px)`;
-            selectFood(f.food);
-        }
-
+        // --- UI Helpers ---
         function selectFood(f) {
             state.food = f;
             document.querySelectorAll('.food-card').forEach(c => c.classList.remove('active'));
@@ -293,8 +316,17 @@
             state.tool = t;
             document.querySelectorAll('.tool-card').forEach(b => b.classList.remove('active'));
             document.getElementById(`tool-${t}`).classList.add('active');
-            document.getElementById('heroIcon').src = t === 'cucchiaio' ? 'spoon.png' : t === 'cucchiaino' ? 'teaspoon.png' : t === 'tazzina' ? 'mug.png' : 'glass.png';
+            const icons = { cucchiaio: 'spoon.png', cucchiaino: 'teaspoon.png', tazzina: 'mug.png', bicchiere: 'glass.png' };
+            document.getElementById('heroIcon').src = icons[t];
             updateUI();
+        }
+
+        function loadFavorite(f) {
+            state.grams = f.grams;
+            currT_r = -(f.grams / 5 * 22);
+            prevT_r = currT_r;
+            document.getElementById('track').style.transform = `translateX(${currT_r}px)`;
+            selectFood(f.food);
         }
 
         function resetGrams() {
@@ -312,8 +344,30 @@
             document.getElementById('kcalVal').textContent = Math.round((food.kcal * state.grams) / 100);
         }
 
+        // --- PWA Register & Install ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').classList.remove('hidden');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
+                deferredPrompt = null;
+            }
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+
         window.onload = init;
     </script>
 </body>
 </html>
-
