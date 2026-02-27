@@ -3,128 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#f59e0b">
-    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
     <title>PesoSenzaBilancia - Chef Academy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); min-height: 100vh; user-select: none; }
-        .main-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; min-height: 100vh; user-select: none; touch-action: manipulation; }
         .chef-card { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
-        .mode-btn.active { background: white; color: #d97706; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .selectable-card { border: 2px solid #f8fafc; transition: all 0.2s; padding: 1rem 0.25rem; }
-        .selectable-card.active { border-color: #f59e0b; background: #fffbeb; transform: scale(1.05); }
-        #customSelectOptions { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.3s ease-out; position: absolute; z-index: 100; left: 0; right: 0; top: 100%; }
-        #customSelectOptions.open { max-height: 500px; opacity: 1; overflow-y: auto; border: 1px solid #e2e8f0; background: white; border-radius: 1.5rem; margin-top: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        
-        .input-empty { border: 3px solid #f59e0b; animation: pulse-border 2s infinite; }
-        @keyframes pulse-border {
-            0% { border-color: #f59e0b; box-shadow: 0 0 0px rgba(245, 158, 11, 0.2); }
-            50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
-            100% { border-color: #f59e0b; box-shadow: 0 0 0px rgba(245, 158, 11, 0.2); }
-        }
-
-        input[type="number"] { -moz-appearance: textfield; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .icon-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .mode-btn.active { background: #f59e0b; color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+        .tool-btn.active { border-color: #f59e0b; background: #fffbeb; transform: translateY(-2px); }
+        .food-chip.active { background: #1e293b; color: white; }
+        .icon-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        /* Rimuove focus azzurro su mobile */
+        *:focus { outline: none !important; }
+        -webkit-tap-highlight-color: transparent;
     </style>
 </head>
-<body class="flex items-center justify-center p-4 text-slate-800">
+<body class="flex flex-col items-center">
 
-    <div class="main-card w-full max-w-[460px] rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+    <div class="w-full max-w-[460px] bg-white min-h-screen shadow-xl flex flex-col">
         
-        <div class="chef-card p-6 text-white text-center">
-            <div class="flex items-center space-x-4">
-                <div class="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center border border-white/10 shadow-inner">
-                    <img src="chef-hat.png" class="w-10 h-10 object-contain" alt="Chef">
+        <div class="chef-card p-4 text-white flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-white/10">
+                    <img src="chef-hat.png" class="w-7 h-7 object-contain">
                 </div>
-                <div class="text-left">
-                    <h2 id="rankTitle" class="text-base font-extrabold text-amber-500 uppercase leading-tight">AIUTO CUOCO</h2>
-                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Livello <span id="levelLabel">1</span> • <span id="xpLabel">0/100 XP</span></p>
-                    <div class="w-28 bg-slate-800 h-1 rounded-full mt-2 overflow-hidden">
-                        <div id="xpBar" class="h-full bg-amber-500 w-0 transition-all duration-500"></div>
-                    </div>
+                <div>
+                    <h2 id="rankTitle" class="text-xs font-extrabold text-amber-500 uppercase">AIUTO CUOCO</h2>
+                    <p class="text-[10px] text-slate-400">Livello <span id="levelLabel">1</span></p>
                 </div>
+            </div>
+            <div class="bg-slate-800 px-3 py-1 rounded-full text-[10px] font-bold text-amber-500 border border-amber-500/20">
+                <span id="xpLabel">0</span> XP
             </div>
         </div>
 
-        <div class="bg-white p-6 pb-2">
-            <div class="flex bg-slate-100 p-1 rounded-2xl mb-4">
-                <button onclick="setMode('toTool')" id="tab-toTool" class="mode-btn active flex-1 py-3 text-[10px] font-extrabold uppercase rounded-xl transition-all">Grammi → Utensile</button>
-                <button onclick="setMode('toWeight')" id="tab-toWeight" class="mode-btn flex-1 py-3 text-[10px] font-extrabold uppercase rounded-xl transition-all">Utensile → Grammi</button>
+        <div class="p-4 bg-slate-50 border-b border-slate-100 flex space-x-2 overflow-x-auto no-scrollbar">
+            <button onclick="selectFood('farina')" id="chip-farina" class="food-chip active flex-shrink-0 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold transition-all uppercase">Farina</button>
+            <button onclick="selectFood('olio')" id="chip-olio" class="food-chip flex-shrink-0 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold transition-all uppercase">Olio</button>
+            <button onclick="selectFood('zucchero')" id="chip-zucchero" class="food-chip flex-shrink-0 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold transition-all uppercase">Zucchero</button>
+            <button onclick="toggleDropdown()" class="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-100 text-amber-700 text-xs font-bold uppercase">Altro ▾</button>
+        </div>
+        <div id="customSelectOptions" class="hidden bg-white border-b border-slate-200"></div>
+
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between bg-slate-100 p-2 rounded-3xl">
+                <button onclick="adjustValue(-10)" class="w-16 h-16 flex items-center justify-center bg-white rounded-2xl shadow-sm active:scale-90 transition-transform text-3xl font-bold text-slate-400">-</button>
+                <div class="flex flex-col items-center">
+                    <input type="number" id="mainInput" placeholder="0" class="w-24 text-center text-5xl font-extrabold bg-transparent border-none focus:ring-0 text-slate-800">
+                    <span id="inputLabel" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Grammi</span>
+                </div>
+                <button onclick="adjustValue(10)" class="w-16 h-16 flex items-center justify-center bg-white rounded-2xl shadow-sm active:scale-90 transition-transform text-3xl font-bold text-amber-500">+</button>
             </div>
 
-            <div class="relative">
-                <div onclick="toggleDropdown()" class="bg-slate-50 rounded-2xl px-5 py-4 flex items-center justify-between cursor-pointer border-2 border-transparent hover:border-amber-200 transition-all">
-                    <div class="flex items-center space-x-4">
-                        <img id="selectedIcon" src="flour.png" class="w-11 h-11 object-contain">
-                        <span id="selectedText" class="font-extrabold text-slate-700 text-xl uppercase">Farina</span>
-                    </div>
-                    <span class="text-slate-400 text-xs">▼</span>
-                </div>
-                <div id="customSelectOptions"></div>
+            <div class="flex justify-between px-2">
+                <button onclick="setValue(20)" class="text-[10px] font-extrabold px-4 py-2 bg-slate-100 rounded-lg text-slate-500 uppercase">20g</button>
+                <button onclick="setValue(50)" class="text-[10px] font-extrabold px-4 py-2 bg-slate-100 rounded-lg text-slate-500 uppercase">50g</button>
+                <button onclick="setValue(100)" class="text-[10px] font-extrabold px-4 py-2 bg-slate-100 rounded-lg text-slate-500 uppercase">100g</button>
+                <button onclick="setValue(250)" class="text-[10px] font-extrabold px-4 py-2 bg-slate-100 rounded-lg text-slate-500 uppercase">250g</button>
             </div>
         </div>
 
-        <div class="p-6 pt-0 space-y-6">
-            <div class="grid grid-cols-4 gap-2">
-                <button onclick="selectTool('cucchiaio')" id="btn-cucchiaio" class="selectable-card active flex flex-col items-center rounded-2xl">
-                    <img src="spoon.png" class="w-12 h-12 mb-2 object-contain">
-                    <span class="text-[8px] font-extrabold uppercase">Cucchiaio</span>
-                </button>
-                <button onclick="selectTool('cucchiaino')" id="btn-cucchiaino" class="selectable-card flex flex-col items-center rounded-2xl">
-                    <img src="teaspoon.png" class="w-12 h-12 mb-2 object-contain">
-                    <span class="text-[8px] font-extrabold uppercase">Cucchiaino</span>
-                </button>
-                <button onclick="selectTool('tazzina')" id="btn-tazzina" class="selectable-card flex flex-col items-center rounded-2xl">
-                    <img src="mug.png" class="w-12 h-12 mb-2 object-contain">
-                    <span class="text-[8px] font-extrabold uppercase">Tazzina</span>
-                </button>
-                <button onclick="selectTool('bicchiere')" id="btn-bicchiere" class="selectable-card flex flex-col items-center rounded-2xl">
-                    <img src="glass.png" class="w-12 h-12 mb-2 object-contain">
-                    <span class="text-[8px] font-extrabold uppercase">Bicchiere</span>
-                </button>
-            </div>
-
-            <div class="space-y-4">
-                <div id="inputWrapper" class="bg-white p-4 rounded-[1.5rem] flex items-center justify-between input-empty shadow-sm transition-all border-3">
-                    <div class="w-1/2 text-center border-r border-slate-100">
-                        <input type="number" id="mainInput" placeholder="0" class="w-full text-center text-5xl font-extrabold text-slate-800 bg-transparent border-none focus:ring-0 placeholder-slate-200">
-                        <p id="inputLabel" class="text-[9px] font-bold text-amber-500 uppercase mt-1">Grammi</p>
-                    </div>
-                    <div class="w-1/2 text-center">
-                        <p id="kcalResult" class="text-2xl font-extrabold text-slate-300">0</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">KCAL</p>
-                    </div>
+        <div class="flex-1 px-6 flex flex-col items-center justify-center space-y-6">
+            <div class="w-full bg-slate-900 rounded-[3rem] p-8 min-h-[220px] shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 flex items-center justify-center pointer-events-none">
+                    <img id="bgIconDeco" src="flour.png" class="w-40 h-40">
                 </div>
-
-                <div class="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl text-white min-h-[160px] flex flex-col items-center justify-center transition-all border border-white/5">
-                    <div id="visualResult" class="flex flex-wrap justify-center gap-3 mb-4">
-                        </div>
-                    <div id="mainResult" class="text-xs font-extrabold bg-amber-500 text-slate-900 px-4 py-1.5 rounded-full uppercase tracking-widest">
-                        Inizia a inserire
+                
+                <div id="visualResult" class="flex flex-wrap justify-center gap-3 relative z-10">
                     </div>
+                
+                <div id="mainResult" class="mt-6 text-sm font-black bg-amber-500 text-slate-900 px-6 py-2 rounded-full uppercase tracking-tighter shadow-lg z-10">
+                    Scegli la quantità
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 px-2">
-                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center">
-                    <div id="carbsValue" class="text-sm font-extrabold text-blue-500">0g</div>
-                    <p class="text-[7px] text-slate-400 uppercase font-bold">Carbi</p>
+            <div class="grid grid-cols-4 gap-3 w-full">
+                <button onclick="selectTool('cucchiaio')" id="btn-cucchiaio" class="tool-btn active border-2 border-transparent p-3 rounded-2xl flex flex-col items-center transition-all bg-slate-50">
+                    <img src="spoon.png" class="w-10 h-10 object-contain mb-1">
+                    <span class="text-[7px] font-black uppercase">Cucchiaio</span>
+                </button>
+                <button onclick="selectTool('cucchiaino')" id="btn-cucchiaino" class="tool-btn border-2 border-transparent p-3 rounded-2xl flex flex-col items-center transition-all bg-slate-50">
+                    <img src="teaspoon.png" class="w-10 h-10 object-contain mb-1">
+                    <span class="text-[7px] font-black uppercase">Cucchiaino</span>
+                </button>
+                <button onclick="selectTool('tazzina')" id="btn-tazzina" class="tool-btn border-2 border-transparent p-3 rounded-2xl flex flex-col items-center transition-all bg-slate-50">
+                    <img src="mug.png" class="w-10 h-10 object-contain mb-1">
+                    <span class="text-[7px] font-black uppercase">Tazzina</span>
+                </button>
+                <button onclick="selectTool('bicchiere')" id="btn-bicchiere" class="tool-btn border-2 border-transparent p-3 rounded-2xl flex flex-col items-center transition-all bg-slate-50">
+                    <img src="glass.png" class="w-10 h-10 object-contain mb-1">
+                    <span class="text-[7px] font-black uppercase">Bicchiere</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6 bg-slate-50 border-t border-slate-200">
+            <div class="flex justify-between items-center text-center">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Kcal</p>
+                    <p id="kcalResult" class="text-xl font-black text-slate-800">0</p>
                 </div>
-                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center">
-                    <div id="proteinValue" class="text-sm font-extrabold text-red-500">0g</div>
-                    <p class="text-[7px] text-slate-400 uppercase font-bold">Proteine</p>
+                <div class="w-px h-8 bg-slate-200"></div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Carbi</p>
+                    <p id="carbsValue" class="text-xs font-bold text-blue-500">0g</p>
                 </div>
-                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center">
-                    <div id="fatsValue" class="text-sm font-extrabold text-amber-600">0g</div>
-                    <p class="text-[7px] text-slate-400 uppercase font-bold">Grassi</p>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Prot</p>
+                    <p id="proteinValue" class="text-xs font-bold text-red-500">0g</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Grass</p>
+                    <p id="fatsValue" class="text-xs font-bold text-amber-600">0g</p>
                 </div>
             </div>
-
-            <button id="installBtn" class="hidden w-full bg-slate-800 text-white py-4 rounded-2xl text-[10px] font-extrabold uppercase tracking-widest active:scale-95 transition-transform">Installa App</button>
         </div>
     </div>
 
@@ -139,112 +133,94 @@
         };
 
         const toolIcons = { cucchiaio: "spoon.png", cucchiaino: "teaspoon.png", tazzina: "mug.png", bicchiere: "glass.png" };
-        const ranks = ["AIUTO CUOCO", "CAPO PARTITA", "SOUS CHEF", "EXECUTIVE CHEF", "MASTER CHEF"];
-        let state = { xp: 0, level: 1, mode: 'toTool', tool: 'cucchiaio', food: 'farina' };
+        let state = { xp: 0, level: 1, tool: 'cucchiaio', food: 'farina' };
 
         function init() {
             const container = document.getElementById('customSelectOptions');
             Object.keys(db).forEach(key => {
                 const div = document.createElement('div');
-                div.className = "px-6 py-5 flex items-center space-x-6 cursor-pointer border-b border-slate-50 hover:bg-amber-50 transition-colors";
-                div.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain"> <span class="text-xl font-extrabold text-slate-700 uppercase">${db[key].name}</span>`;
+                div.className = "px-6 py-4 flex items-center space-x-4 cursor-pointer border-b border-slate-50";
+                div.innerHTML = `<img src="${db[key].img}" class="w-8 h-8 object-contain"> <span class="text-sm font-bold uppercase">${db[key].name}</span>`;
                 div.onclick = () => selectFood(key);
                 container.appendChild(div);
             });
             calculate();
         }
 
-        function toggleDropdown() { document.getElementById('customSelectOptions').classList.toggle('open'); }
+        function toggleDropdown() { document.getElementById('customSelectOptions').classList.toggle('hidden'); }
 
         function selectFood(key) {
             state.food = key;
-            document.getElementById('selectedIcon').src = db[key].img;
-            document.getElementById('selectedText').textContent = db[key].name;
-            toggleDropdown();
+            document.querySelectorAll('.food-chip').forEach(c => c.classList.remove('active'));
+            const activeChip = document.getElementById(`chip-${key}`);
+            if(activeChip) activeChip.classList.add('active');
+            document.getElementById('bgIconDeco').src = db[key].img;
+            document.getElementById('customSelectOptions').classList.add('hidden');
             addXP(5);
             calculate();
         }
 
-        function setMode(m) {
-            state.mode = m;
-            document.getElementById('tab-toWeight').classList.toggle('active', m === 'toWeight');
-            document.getElementById('tab-toTool').classList.toggle('active', m === 'toTool');
-            document.getElementById('inputLabel').textContent = m === 'toWeight' ? 'Unità' : 'Grammi';
+        function adjustValue(n) {
+            const input = document.getElementById('mainInput');
+            let val = parseInt(input.value) || 0;
+            input.value = Math.max(0, val + n);
+            calculate();
+        }
+
+        function setValue(n) {
+            document.getElementById('mainInput').value = n;
             calculate();
         }
 
         function selectTool(t) {
             state.tool = t;
-            document.querySelectorAll('.selectable-card').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${t}`));
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${t}`));
             calculate();
         }
 
         function calculate() {
             const food = db[state.food];
-            const inputVal = document.getElementById('mainInput').value;
-            const val = Math.max(0, parseFloat(inputVal) || 0);
+            const val = Math.max(0, parseFloat(document.getElementById('mainInput').value) || 0);
             const unitWeight = food.weights[state.tool];
             const visualContainer = document.getElementById('visualResult');
-            const wrapper = document.getElementById('inputWrapper');
-            const kcalEl = document.getElementById('kcalResult');
+            visualContainer.innerHTML = '';
             
-            if (inputVal === "" || val === 0) {
-                wrapper.classList.add('input-empty');
-                kcalEl.classList.replace('text-amber-600', 'text-slate-300');
-                document.getElementById('mainResult').textContent = "Inizia a inserire";
-                visualContainer.innerHTML = '';
-            } else {
-                wrapper.classList.remove('input-empty');
-                kcalEl.classList.replace('text-slate-300', 'text-amber-600');
-                
-                visualContainer.innerHTML = '';
-                let weightG, units;
-
-                if (state.mode === 'toTool') {
-                    weightG = val;
-                    units = val / unitWeight;
-                    document.getElementById('mainResult').textContent = units.toFixed(1) + ' UNITÀ';
-                } else {
-                    units = val;
-                    weightG = val * unitWeight;
-                    document.getElementById('mainResult').textContent = weightG + ' GRAMMI';
-                }
-
-                const fullIcons = Math.floor(units);
-                const remainder = units - fullIcons;
-
-                // ICONE BILANCIATE (w-14)
-                for(let i=0; i < Math.min(fullIcons, 12); i++) {
-                    const img = document.createElement('img');
-                    img.src = toolIcons[state.tool];
-                    img.className = "w-14 h-14 object-contain icon-pop";
-                    visualContainer.appendChild(img);
-                }
-                if (remainder > 0.1 && fullIcons < 12) {
-                    const img = document.createElement('img');
-                    img.src = toolIcons[state.tool];
-                    img.className = "w-14 h-14 object-contain icon-pop";
-                    img.style.opacity = remainder + 0.3;
-                    img.style.transform = `scale(${0.7 + (remainder * 0.3)})`;
-                    visualContainer.appendChild(img);
-                }
-
-                const ratio = weightG / 100;
-                kcalEl.textContent = Math.round(food.kcal * ratio);
-                document.getElementById('carbsValue').textContent = (food.c * ratio).toFixed(1) + 'g';
-                document.getElementById('proteinValue').textContent = (food.p * ratio).toFixed(1) + 'g';
-                document.getElementById('fatsValue').textContent = (food.f * ratio).toFixed(1) + 'g';
+            if (val === 0) {
+                document.getElementById('mainResult').textContent = "Inserisci quantità";
+                return;
             }
+
+            const units = val / unitWeight;
+            document.getElementById('mainResult').textContent = units.toFixed(1) + ' UNITÀ';
+
+            const fullIcons = Math.floor(units);
+            const remainder = units - fullIcons;
+
+            for(let i=0; i < Math.min(fullIcons, 12); i++) {
+                const img = document.createElement('img');
+                img.src = toolIcons[state.tool];
+                img.className = "w-14 h-14 object-contain icon-pop";
+                visualContainer.appendChild(img);
+            }
+            if (remainder > 0.1 && fullIcons < 12) {
+                const img = document.createElement('img');
+                img.src = toolIcons[state.tool];
+                img.className = "w-14 h-14 object-contain icon-pop opacity-50 scale-75";
+                visualContainer.appendChild(img);
+            }
+
+            const ratio = val / 100;
+            document.getElementById('kcalResult').textContent = Math.round(food.kcal * ratio);
+            document.getElementById('carbsValue').textContent = (food.c * ratio).toFixed(1) + 'g';
+            document.getElementById('proteinValue').textContent = (food.p * ratio).toFixed(1) + 'g';
+            document.getElementById('fatsValue').textContent = (food.f * ratio).toFixed(1) + 'g';
         }
 
         function addXP(n) {
             state.xp += n;
             if (state.xp >= 100) { state.xp = 0; state.level++; }
-            document.getElementById('xpBar').style.width = state.xp + '%';
-            document.getElementById('xpLabel').textContent = state.xp + '/100 XP';
+            document.getElementById('xpLabel').textContent = state.xp;
             document.getElementById('levelLabel').textContent = state.level;
-            const rIdx = Math.min(ranks.length - 1, Math.floor((state.level - 1) / 2));
-            document.getElementById('rankTitle').textContent = ranks[rIdx];
         }
 
         document.getElementById('mainInput').addEventListener('input', calculate);
