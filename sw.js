@@ -1,5 +1,5 @@
-/* sw.js - Versione 2026-02-27-v13 */
-const CACHE_NAME = 'chef-academy-v13';
+/* sw.js - Versione 2026-02-27-v14 */
+const CACHE_NAME = 'chef-academy-v14';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -21,17 +21,11 @@ const ASSETS_TO_CACHE = [
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)));
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => Promise.all(
-      keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null))
-    ))
-  );
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))));
   self.clients.claim();
 });
 
