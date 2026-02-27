@@ -32,7 +32,7 @@
     .ruler-pointer { position: absolute; left: 50%; bottom: 0; width: 4px; height: 50px; background: #f59e0b; transform: translateX(-50%); z-index: 20; border-radius: 4px 4px 0 0; }
     .food-card { transition: all 0.2s ease; border: 2px solid transparent; }
     .food-card.active { background: #fffbeb; border-color: #f59e0b; transform: scale(1.05); }
-    .fav-tag.dragging { position: fixed; z-index: 200; pointer-events: none; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); opacity: 0.9; }
+    .fav-tag.dragging { position: fixed !important; z-index: 200 !important; pointer-events: none; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); opacity: 0.9; }
     .tool-card.active { background: #1e293b !important; color: white !important; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     #fillLevel { transition: height 0.2s ease-out; }
@@ -49,7 +49,7 @@
       <div class="bg-slate-900 rounded-[2.5rem] p-5 shadow-2xl text-white relative flex items-center justify-between">
         <div class="flex items-center space-x-5">
           <div class="relative w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center overflow-hidden border-2 border-slate-700">
-            <img id="heroIcon" src="./spoon.png" class="w-12 h-12 object-contain opacity-40 z-10" alt="Tool" />
+            <img id="heroIcon" src="./spoon.png" class="w-12 h-12 object-contain opacity-40 z-10" />
             <div id="fillLevel" class="absolute bottom-0 left-0 w-full bg-amber-500" style="height: 0%"></div>
             <div id="multiplier" class="absolute -bottom-1 -right-1 bg-amber-500 text-slate-900 text-[11px] font-black px-2.5 py-1 rounded-lg z-20">x0</div>
           </div>
@@ -91,8 +91,8 @@
       olio:     { name: "Olio",     img: "./oil.png",    w: { cucchiaio: 9,  cucchiaino: 3, tazzina: 80,  bicchiere: 180 }, kcal: 884 },
       zucchero: { name: "Zucchero", img: "./sugar.png",  w: { cucchiaio: 15, cucchiaino: 5, tazzina: 80,  bicchiere: 180 }, kcal: 387 },
       sale:     { name: "Sale",     img: "./salt.png",   w: { cucchiaio: 18, cucchiaino: 6, tazzina: 110, bicchiere: 250 }, kcal: 0   },
-      riso:     { name: "Riso",     img: "./rice.png",   w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90,  bicchiere: 220 }, kcal: 130 },
-      latte:    { name: "Latte",    img: "./milk.png",   w: { cucchiaio: 15, cucchiaino: 5, tazzina: 70,  bicchiere: 200 }, kcal: 64  }
+      riso:     { name: "Riso",     isEmoji: true, emoji: "🍚", w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90,  bicchiere: 220 }, kcal: 130 },
+      latte:    { name: "Latte",    isEmoji: true, emoji: "🥛", w: { cucchiaio: 15, cucchiaino: 5, tazzina: 70,  bicchiere: 200 }, kcal: 64  }
     };
 
     const state = { food: 'farina', tool: 'cucchiaio', grams: 0, favorites: [] };
@@ -101,12 +101,14 @@
 
     function initUI() {
       const grid = document.getElementById('ingredientGrid');
+      grid.innerHTML = '';
       Object.keys(db).forEach(k => {
         const c = document.createElement('div');
         c.id = `food-${k}`;
         c.className = `food-card p-4 rounded-[2rem] bg-slate-50 flex flex-col items-center border-2 border-transparent ${k === state.food ? 'active' : ''}`;
         c.onclick = () => selectFood(k);
-        c.innerHTML = `<img src="${db[k].img}" class="w-14 h-14 object-contain mb-2"><span class="text-[10px] font-black uppercase text-slate-600">${db[k].name}</span>`;
+        const iconHtml = db[k].isEmoji ? `<span class="text-4xl mb-2">${db[k].emoji}</span>` : `<img src="${db[k].img}" class="w-14 h-14 object-contain mb-2">`;
+        c.innerHTML = `${iconHtml}<span class="text-[10px] font-black uppercase text-slate-600">${db[k].name}</span>`;
         grid.appendChild(c);
       });
       const track = document.getElementById('track');
@@ -135,8 +137,10 @@
         if (state.grams !== lastTickGrams) { lastTickGrams = state.grams; updateUI(); }
       };
       r.onmousedown = r.ontouchstart = (e) => { isDragging = true; startX = (e.touches ? e.touches[0].clientX : e.clientX); };
-      window.onmousemove = window.ontouchmove = onMove;
-      window.onmouseup = window.ontouchend = () => { isDragging = false; prevT = currT; };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('mouseup', () => { isDragging = false; prevT = currT; });
+      window.addEventListener('touchend', () => { isDragging = false; prevT = currT; });
     }
 
     function getSmartCombo(grams, foodKey) {
@@ -158,12 +162,8 @@
       document.getElementById('multiplier').textContent = `x${Math.floor(units)}`;
       document.getElementById('kcalVal').textContent = Math.round((food.kcal * state.grams) / 100);
       document.getElementById('smartHint').textContent = getSmartCombo(state.grams, state.food);
-      
-      // Ruler UX: Fill effect
       const fillPercent = (units % 1) * 100;
       document.getElementById('fillLevel').style.height = (state.grams > 0 && units < 1) ? `${fillPercent}%` : (units >= 1 ? '100%' : '0%');
-
-      // Vibrazione ogni unità intera (1.0, 2.0, ecc)
       const currentInteger = Math.floor(units);
       if (currentInteger !== lastIntegerUnit && currentInteger > 0) {
         if (navigator.vibrate) navigator.vibrate(20);
@@ -210,19 +210,28 @@
         document.getElementById('trash-zone').classList.add('active');
         if (navigator.vibrate) navigator.vibrate(50);
       }, 500);
-      el.onmouseup = el.ontouchend = () => clearTimeout(pressTimer);
+      const clear = () => clearTimeout(pressTimer);
+      el.onmouseup = el.ontouchend = clear;
+      window.addEventListener('mouseup', clear, { once: true });
     }
 
-    window.onmousemove = window.ontouchmove = (e) => {
+    window.addEventListener('mousemove', handleDrag);
+    window.addEventListener('touchmove', handleDrag, { passive: false });
+
+    function handleDrag(e) {
       if (!dragItem) return;
+      if (e.cancelable) e.preventDefault();
       const x = (e.touches ? e.touches[0].clientX : e.clientX);
       const y = (e.touches ? e.touches[0].clientY : e.clientY);
       dragItem.element.style.left = `${x - 40}px`;
       dragItem.element.style.top = `${y - 15}px`;
       document.getElementById('trash-zone').classList.toggle('hover', y < 120);
-    };
+    }
 
-    window.onmouseup = window.ontouchend = (e) => {
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
+
+    function endDrag(e) {
       if (!dragItem) return;
       const y = (e.changedTouches ? e.changedTouches[0].clientY : e.clientY);
       if (y < 120) {
@@ -233,7 +242,7 @@
       dragItem.element.style = "";
       dragItem = null;
       document.getElementById('trash-zone').classList.remove('active', 'hover');
-    };
+    }
 
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
     initUI();
