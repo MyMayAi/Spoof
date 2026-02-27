@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chef Academy - Drag Edition</title>
+    <title>Chef Academy - Sound Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; color: #1e293b; touch-action: none; overflow: hidden; user-select: none; }
         
-        /* Cestino */
+        /* Cestino con animazione */
         #trash-zone {
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform: translateY(-100%);
@@ -17,6 +17,12 @@
         }
         #trash-zone.active { transform: translateY(0); opacity: 1; }
         #trash-zone.hover { background: #fee2e2; transform: scale(1.05); border-color: #ef4444; }
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(5px) rotate(2deg); }
+            75% { transform: translateY(5px) rotate(-2deg); }
+        }
 
         /* Ruler */
         .ruler-container { position: relative; width: 100%; height: 100px; overflow: hidden; cursor: grab; background: #f8fafc; border-top: 1px solid #f1f5f9; }
@@ -31,7 +37,7 @@
         .food-card.active { background: #fffbeb; border-color: #f59e0b; transform: scale(1.05); }
 
         /* Draggable Element */
-        .fav-tag { cursor: grab; transition: transform 0.2s; touch-action: none; }
+        .fav-tag { cursor: grab; transition: transform 0.2s; touch-action: none; position: relative; }
         .fav-tag.dragging { position: fixed; z-index: 9999; pointer-events: none; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); opacity: 0.9; }
 
         .tool-card.active { background: #1e293b !important; color: white !important; }
@@ -43,8 +49,8 @@
     <div class="w-full max-w-[460px] h-screen flex flex-col bg-white relative">
         
         <div id="trash-zone" class="absolute top-0 left-0 w-full h-24 bg-red-50 border-b-2 border-red-200 z-50 flex flex-col items-center justify-center text-red-500">
-            <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            <span class="text-[10px] font-black uppercase tracking-widest">Trascina qui per eliminare</span>
+            <svg id="trash-icon" class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span class="text-[10px] font-black uppercase tracking-widest">Elimina</span>
         </div>
 
         <div class="px-6 pt-8 pb-2">
@@ -66,7 +72,7 @@
             </div>
             
             <div id="favoritesList" class="flex space-x-2 mt-4 overflow-x-auto no-scrollbar min-h-[40px] items-center">
-                <span class="text-[9px] font-bold text-slate-300 uppercase">Tieni premuto un salvato per eliminarlo</span>
+                <span class="text-[9px] font-bold text-slate-300 uppercase">Tieni premuto per eliminare</span>
             </div>
         </div>
 
@@ -103,6 +109,7 @@
     </div>
 
     <script>
+        // Database e Stato
         const db = {
             farina: { name: "Farina", img: "flour.png", w: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120 }, kcal: 364 },
             olio: { name: "Olio", img: "oil.png", w: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180 }, kcal: 884 },
@@ -117,6 +124,22 @@
         let dragItem = null;
         let pressTimer = null;
 
+        // Sintesi sonora (Audio Context)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTrashSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
         function init() {
             const grid = document.getElementById('ingredientGrid');
             Object.keys(db).forEach(key => {
@@ -124,7 +147,7 @@
                 card.id = `food-${key}`;
                 card.className = `food-card p-4 rounded-[2rem] bg-slate-50 flex flex-col items-center border-2 border-transparent ${key === state.food ? 'active' : ''}`;
                 card.onclick = () => selectFood(key);
-                card.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain mb-2"><span class="text-[10px] font-black uppercase text-slate-600">${db[key].name}</span>`;
+                card.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain mb-2"><span class="text-[10px] font-black uppercase text-slate-600 text-center">${db[key].name}</span>`;
                 grid.appendChild(card);
             });
 
@@ -137,24 +160,7 @@
             updateUI();
         }
 
-        // --- Logica Slider ---
-        const ruler = document.getElementById('ruler');
-        let isDraggingRuler = false, startX, currentTranslate = 0, prevTranslate = 0;
-
-        ruler.addEventListener('touchstart', e => { isDraggingRuler = true; startX = e.touches[0].clientX; });
-        ruler.addEventListener('mousedown', e => { isDraggingRuler = true; startX = e.clientX; });
-        window.addEventListener('touchmove', e => {
-            if (!isDraggingRuler) return;
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            currentTranslate = Math.min(0, Math.max(-4500, prevTranslate + (x - startX) * 1.5));
-            document.getElementById('track').style.transform = `translateX(${currentTranslate}px)`;
-            state.grams = Math.abs(Math.round(currentTranslate / 22) * 5);
-            updateUI();
-        });
-        window.addEventListener('touchend', () => { isDraggingRuler = false; prevTranslate = currentTranslate; });
-        window.addEventListener('mouseup', () => { isDraggingRuler = false; prevTranslate = currentTranslate; });
-
-        // --- Logica Preferiti & Drag to Delete ---
+        // --- Gestione Preferiti e Drag ---
         function saveFavorite() {
             if (state.grams === 0) return;
             const id = Date.now();
@@ -174,12 +180,9 @@
                 const tag = document.createElement('div');
                 tag.className = "fav-tag bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[9px] font-black uppercase border border-amber-200 whitespace-nowrap";
                 tag.innerHTML = `${f.grams}g ${f.name}`;
-                
-                // Eventi Pressione e Drag
                 tag.addEventListener('touchstart', (e) => startPress(e, f, tag));
                 tag.addEventListener('mousedown', (e) => startPress(e, f, tag));
                 tag.addEventListener('click', () => { if(!dragItem) loadFavorite(f); });
-                
                 list.appendChild(tag);
             });
         }
@@ -190,57 +193,55 @@
                 el.classList.add('dragging');
                 document.getElementById('trash-zone').classList.add('active');
                 if (navigator.vibrate) navigator.vibrate(50);
+                if (audioCtx.state === 'suspended') audioCtx.resume();
             }, 500);
-            
             const endPress = () => { clearTimeout(pressTimer); };
             window.addEventListener('touchend', endPress, {once:true});
             window.addEventListener('mouseup', endPress, {once:true});
         }
-
-        window.addEventListener('mousemove', handleDrag);
-        window.addEventListener('touchmove', handleDrag, { passive: false });
 
         function handleDrag(e) {
             if (!dragItem) return;
             e.preventDefault();
             const x = e.touches ? e.touches[0].clientX : e.clientX;
             const y = e.touches ? e.touches[0].clientY : e.clientY;
-            
             dragItem.element.style.left = `${x - 40}px`;
             dragItem.element.style.top = `${y - 15}px`;
-
             const trash = document.getElementById('trash-zone');
-            if (y < 100) trash.classList.add('hover');
+            if (y < 120) trash.classList.add('hover');
             else trash.classList.remove('hover');
         }
-
-        window.addEventListener('mouseup', endDrag);
-        window.addEventListener('touchend', endDrag);
 
         function endDrag(e) {
             if (!dragItem) return;
             const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-            
-            if (y < 100) {
+            if (y < 120) {
                 state.favorites = state.favorites.filter(f => f.id !== dragItem.id);
+                playTrashSound();
+                const zone = document.getElementById('trash-zone');
+                zone.classList.add('shake');
+                setTimeout(() => zone.classList.remove('shake'), 400);
                 renderFavorites();
             }
-
             dragItem.element.classList.remove('dragging');
             dragItem.element.style = "";
             dragItem = null;
             document.getElementById('trash-zone').classList.remove('active', 'hover');
         }
 
+        window.addEventListener('mousemove', handleDrag);
+        window.addEventListener('touchmove', handleDrag, { passive: false });
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+
+        // --- Funzioni UI Standard ---
         function loadFavorite(f) {
             state.grams = f.grams;
-            currentTranslate = -(f.grams / 5 * 22);
-            prevTranslate = currentTranslate;
-            document.getElementById('track').style.transform = `translateX(${currentTranslate}px)`;
+            const translate = -(f.grams / 5 * 22);
+            document.getElementById('track').style.transform = `translateX(${translate}px)`;
             selectFood(f.food);
         }
 
-        // --- Funzioni UI ---
         function selectFood(f) {
             state.food = f;
             document.querySelectorAll('.food-card').forEach(c => c.classList.remove('active'));
@@ -257,8 +258,8 @@
         }
 
         function resetGrams() {
-            currentTranslate = 0; prevTranslate = 0; state.grams = 0;
             document.getElementById('track').style.transform = `translateX(0px)`;
+            state.grams = 0;
             updateUI();
         }
 
@@ -270,6 +271,18 @@
             document.getElementById('multiplier').textContent = `x${Math.floor(units)}`;
             document.getElementById('kcalVal').textContent = Math.round((food.kcal * state.grams) / 100);
         }
+
+        // Setup Righello
+        const ruler = document.getElementById('ruler');
+        let startX_r, currT_r = 0, prevT_r = 0;
+        ruler.addEventListener('touchstart', e => startX_r = e.touches[0].clientX);
+        ruler.addEventListener('touchmove', e => {
+            currT_r = Math.min(0, Math.max(-4500, prevT_r + (e.touches[0].clientX - startX_r) * 1.5));
+            document.getElementById('track').style.transform = `translateX(${currT_r}px)`;
+            state.grams = Math.abs(Math.round(currT_r / 22) * 5);
+            updateUI();
+        });
+        ruler.addEventListener('touchend', () => prevT_r = currT_r);
 
         window.onload = init;
     </script>
