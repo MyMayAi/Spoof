@@ -14,47 +14,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #ffffff; 
-            color: #1e293b; 
-            touch-action: none; 
-            overflow: hidden; 
-            user-select: none; 
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; color: #1e293b; touch-action: none; overflow: hidden; user-select: none; }
 
-        /* Gestione Cestino */
-        #trash-zone { 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            transform: translateY(-100%); 
-            opacity: 0; 
-            z-index: 100;
-        }
+        /* Cestino */
+        #trash-zone { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(-100%); opacity: 0; z-index: 100; }
         #trash-zone.active { transform: translateY(0); opacity: 1; }
         #trash-zone.hover { background: #fee2e2; transform: scale(1.05); border-color: #ef4444; color: #ef4444; }
         .shake { animation: shake 0.4s ease-in-out; }
-        @keyframes shake {
-            0%, 100% { transform: translateY(0); }
-            25% { transform: translateY(5px) rotate(2deg); }
-            75% { transform: translateY(5px) rotate(-2deg); }
-        }
+        @keyframes shake { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(5px) rotate(2deg); } 75% { transform: translateY(5px) rotate(-2deg); } }
 
-        /* Animazione Volo Salvataggio */
-        .fly-save {
-            position: absolute;
-            animation: flyUp 0.6s ease-out forwards;
-            color: #f59e0b;
-            font-weight: 800;
-            pointer-events: none;
-            z-index: 150;
-        }
-        @keyframes flyUp {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -150px) scale(2); opacity: 0; }
-        }
+        /* Animazione Volo */
+        .fly-save { position: absolute; animation: flyUp 0.6s ease-out forwards; color: #f59e0b; font-weight: 800; pointer-events: none; z-index: 150; }
+        @keyframes flyUp { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -150px) scale(2); opacity: 0; } }
 
-        /* Ruler UI */
+        /* Ruler */
         .ruler-container { position: relative; width: 100%; height: 100px; overflow: hidden; cursor: grab; background: #f8fafc; border-top: 1px solid #f1f5f9; }
         .ruler-track { display: flex; align-items: flex-end; height: 100%; position: absolute; left: 50%; will-change: transform; }
         .tack { width: 2px; background: #e2e8f0; margin-right: 20px; flex-shrink: 0; }
@@ -63,14 +36,9 @@
         .tack.minor { height: 15px; }
         .ruler-pointer { position: absolute; left: 50%; bottom: 0; width: 4px; height: 50px; background: #f59e0b; transform: translateX(-50%); z-index: 20; border-radius: 4px 4px 0 0; }
 
-        /* Card Ingredienti */
         .food-card { transition: all 0.2s ease; border: 2px solid transparent; }
         .food-card.active { background: #fffbeb; border-color: #f59e0b; transform: scale(1.05); }
-
-        /* Tag Preferiti Draggable */
-        .fav-tag { cursor: grab; touch-action: none; position: relative; transition: transform 0.2s; }
         .fav-tag.dragging { position: fixed; z-index: 200; pointer-events: none; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); opacity: 0.9; }
-
         .tool-card.active { background: #1e293b !important; color: white !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
@@ -80,14 +48,21 @@
     <div class="w-full max-w-[460px] h-screen flex flex-col bg-white relative overflow-hidden">
         
         <div id="trash-zone" class="absolute top-0 left-0 w-full h-24 bg-red-50 border-b-2 border-red-200 flex flex-col items-center justify-center text-red-400">
-            <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-            </svg>
-            <span class="text-[10px] font-black uppercase tracking-widest">Trascina qui per eliminare</span>
+            <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span class="text-[10px] font-black uppercase tracking-widest">Rilascia per eliminare</span>
         </div>
 
-        <div id="installBtn" class="hidden bg-amber-500 text-white p-2 text-center text-xs font-bold cursor-pointer">
-            Aggiungi Chef Academy alla Home!
+        <div id="pwa-install-banner" class="hidden bg-amber-500 m-4 rounded-2xl p-4 shadow-lg flex items-center justify-between z-[60]">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white p-2 rounded-xl shadow-inner">
+                    <img src="icon-192.png" class="w-8 h-8 object-contain">
+                </div>
+                <div>
+                    <h4 class="text-slate-900 font-extrabold text-sm">Installa App</h4>
+                    <p id="install-instruction" class="text-slate-800 text-[10px] font-medium">Sulla tua home in un click</p>
+                </div>
+            </div>
+            <button id="install-action-btn" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider active:scale-95 transition-transform">Installa</button>
         </div>
 
         <div class="px-6 pt-8 pb-2">
@@ -125,9 +100,7 @@
         <div class="bg-slate-50 border-t border-slate-100 pt-4">
             <div class="flex items-center justify-between px-8 mb-2">
                 <button onclick="resetGrams()" class="text-[10px] font-black text-red-500 uppercase bg-red-50 px-4 py-1.5 rounded-full">Reset</button>
-                <div class="text-3xl font-black text-slate-800">
-                    <span id="gramsDisplay">0</span><span class="text-base text-amber-500 ml-1">g</span>
-                </div>
+                <div class="text-3xl font-black text-slate-800"><span id="gramsDisplay">0</span><span class="text-base text-amber-500 ml-1">g</span></div>
                 <div class="w-16"></div>
             </div>
             <div class="ruler-container" id="ruler">
@@ -164,40 +137,31 @@
 
         let state = { food: 'farina', tool: 'cucchiaio', grams: 0, favorites: [] };
         let lastTickGrams = 0;
-        let dragItem = null, pressTimer = null;
-
-        // Audio Context per i suoni sintetici
+        let dragItem = null, pressTimer = null, deferredPrompt;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playSound(freq, duration, type = 'sine', volume = 0.1) {
+        function playSound(f, d, t='sine', v=0.1) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+            g.gain.setValueAtTime(v, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+            o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
         }
 
-        // --- Inizializzazione ---
         function init() {
             const grid = document.getElementById('ingredientGrid');
-            Object.keys(db).forEach(key => {
-                const card = document.createElement('div');
-                card.id = `food-${key}`;
-                card.className = `food-card p-4 rounded-[2rem] bg-slate-50 flex flex-col items-center border-2 border-transparent ${key === state.food ? 'active' : ''}`;
-                card.onclick = () => selectFood(key);
-                card.innerHTML = `<img src="${db[key].img}" class="w-14 h-14 object-contain mb-2"><span class="text-[10px] font-black uppercase text-slate-600">${db[key].name}</span>`;
-                grid.appendChild(card);
+            Object.keys(db).forEach(k => {
+                const c = document.createElement('div');
+                c.id = `food-${k}`; c.className = `food-card p-4 rounded-[2rem] bg-slate-50 flex flex-col items-center border-2 border-transparent ${k === state.food ? 'active' : ''}`;
+                c.onclick = () => selectFood(k);
+                c.innerHTML = `<img src="${db[k].img}" class="w-14 h-14 object-contain mb-2"><span class="text-[10px] font-black uppercase text-slate-600">${db[k].name}</span>`;
+                grid.appendChild(c);
             });
-
             for(let i=0; i<=500; i+=5) {
-                const tack = document.createElement('div');
-                tack.className = i % 25 === 0 ? 'tack major' : 'tack minor';
-                if(i % 50 === 0) tack.setAttribute('data-val', i);
-                document.getElementById('track').appendChild(tack);
+                const t = document.createElement('div'); t.className = i % 25 === 0 ? 'tack major' : 'tack minor';
+                if(i % 50 === 0) t.setAttribute('data-val', i);
+                document.getElementById('track').appendChild(t);
             }
             updateUI();
         }
@@ -212,11 +176,7 @@
             currT_r = Math.min(0, Math.max(-4500, prevT_r + (x - startX_r) * 1.5));
             document.getElementById('track').style.transform = `translateX(${currT_r}px)`;
             state.grams = Math.abs(Math.round(currT_r / 22) * 5);
-            
-            if (state.grams !== lastTickGrams) {
-                playSound(800, 0.05, 'sine', 0.03); // Sound tick
-                lastTickGrams = state.grams;
-            }
+            if (state.grams !== lastTickGrams) { playSound(800, 0.05, 'sine', 0.03); lastTickGrams = state.grams; }
             updateUI();
         };
 
@@ -227,52 +187,37 @@
         window.addEventListener('touchend', () => { isDraggingRuler = false; prevT_r = currT_r; });
         window.addEventListener('mouseup', () => { isDraggingRuler = false; prevT_r = currT_r; });
 
-        // --- Salvataggio con Animazione ---
+        // --- Salvataggio & Preferiti ---
         function saveFavorite(e) {
             if (state.grams === 0) return;
-            
-            // Animazione Volo
-            const flyer = document.createElement('div');
-            flyer.className = 'fly-save';
-            flyer.style.left = `${e.clientX}px`;
-            flyer.style.top = `${e.clientY}px`;
-            flyer.textContent = `+${state.grams}g`;
-            document.body.appendChild(flyer);
+            const flyer = document.createElement('div'); flyer.className = 'fly-save';
+            flyer.style.left = `${e.clientX}px`; flyer.style.top = `${e.clientY}px`;
+            flyer.textContent = `+${state.grams}g`; document.body.appendChild(flyer);
             setTimeout(() => flyer.remove(), 600);
-
-            playSound(440, 0.2, 'triangle', 0.1); // Sound Save
-            
+            playSound(440, 0.2, 'triangle', 0.1);
             const id = Date.now();
             state.favorites.unshift({ id, grams: state.grams, food: state.food, name: db[state.food].name });
             if (state.favorites.length > 5) state.favorites.pop();
             renderFavorites();
         }
 
-        // --- Drag to Delete & Preferiti ---
         function renderFavorites() {
-            const list = document.getElementById('favoritesList');
-            list.innerHTML = '';
-            if(state.favorites.length === 0) {
-                list.innerHTML = '<span class="text-[9px] font-bold text-slate-300 uppercase">Tieni premuto per eliminare</span>';
-                return;
-            }
+            const list = document.getElementById('favoritesList'); list.innerHTML = '';
+            if(state.favorites.length === 0) { list.innerHTML = '<span class="text-[9px] font-bold text-slate-300 uppercase">Tieni premuto per eliminare</span>'; return; }
             state.favorites.forEach(f => {
                 const tag = document.createElement('div');
                 tag.className = "fav-tag bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[9px] font-black uppercase border border-amber-200 whitespace-nowrap";
                 tag.innerHTML = `${f.grams}g ${f.name}`;
-                
                 tag.addEventListener('touchstart', (e) => startPress(e, f, tag));
                 tag.addEventListener('mousedown', (e) => startPress(e, f, tag));
                 tag.addEventListener('click', () => { if(!dragItem) loadFavorite(f); });
-                
                 list.appendChild(tag);
             });
         }
 
         function startPress(e, fav, el) {
             pressTimer = setTimeout(() => {
-                dragItem = { ...fav, element: el };
-                el.classList.add('dragging');
+                dragItem = { ...fav, element: el }; el.classList.add('dragging');
                 document.getElementById('trash-zone').classList.add('active');
                 if (navigator.vibrate) navigator.vibrate(50);
             }, 500);
@@ -283,8 +228,7 @@
 
         window.addEventListener('mousemove', e => {
             if (!dragItem) return;
-            dragItem.element.style.left = `${e.clientX - 40}px`;
-            dragItem.element.style.top = `${e.clientY - 15}px`;
+            dragItem.element.style.left = `${e.clientX - 40}px`; dragItem.element.style.top = `${e.clientY - 15}px`;
             document.getElementById('trash-zone').classList.toggle('hover', e.clientY < 120);
         });
 
@@ -292,79 +236,45 @@
             if (!dragItem) return;
             if (e.clientY < 120) {
                 state.favorites = state.favorites.filter(f => f.id !== dragItem.id);
-                playSound(150, 0.15, 'square', 0.1); // Sound Trash
-                const zone = document.getElementById('trash-zone');
-                zone.classList.add('shake');
-                setTimeout(() => zone.classList.remove('shake'), 400);
-                renderFavorites();
+                playSound(150, 0.15, 'square', 0.1);
+                const zone = document.getElementById('trash-zone'); zone.classList.add('shake');
+                setTimeout(() => zone.classList.remove('shake'), 400); renderFavorites();
             }
-            dragItem.element.classList.remove('dragging');
-            dragItem.element.style = "";
-            dragItem = null;
+            dragItem.element.classList.remove('dragging'); dragItem.element.style = ""; dragItem = null;
             document.getElementById('trash-zone').classList.remove('active', 'hover');
         });
 
-        // --- UI Helpers ---
-        function selectFood(f) {
-            state.food = f;
-            document.querySelectorAll('.food-card').forEach(c => c.classList.remove('active'));
-            document.getElementById(`food-${f}`).classList.add('active');
-            updateUI();
-        }
+        function selectFood(f) { state.food = f; document.querySelectorAll('.food-card').forEach(c => c.classList.remove('active')); document.getElementById(`food-${f}`).classList.add('active'); updateUI(); }
+        function selectTool(t) { state.tool = t; document.querySelectorAll('.tool-card').forEach(b => b.classList.remove('active')); document.getElementById(`tool-${t}`).classList.add('active'); const icons = { cucchiaio: 'spoon.png', cucchiaino: 'teaspoon.png', tazzina: 'mug.png', bicchiere: 'glass.png' }; document.getElementById('heroIcon').src = icons[t]; updateUI(); }
+        function loadFavorite(f) { state.grams = f.grams; currT_r = -(f.grams / 5 * 22); prevT_r = currT_r; document.getElementById('track').style.transform = `translateX(${currT_r}px)`; selectFood(f.food); }
+        function resetGrams() { currT_r = 0; prevT_r = 0; state.grams = 0; document.getElementById('track').style.transform = `translateX(0px)`; updateUI(); }
+        function updateUI() { const food = db[state.food]; const units = state.grams / food.w[state.tool]; document.getElementById('gramsDisplay').textContent = state.grams; document.getElementById('resultUnits').textContent = units.toFixed(1); document.getElementById('multiplier').textContent = `x${Math.floor(units)}`; document.getElementById('kcalVal').textContent = Math.round((food.kcal * state.grams) / 100); }
 
-        function selectTool(t) {
-            state.tool = t;
-            document.querySelectorAll('.tool-card').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tool-${t}`).classList.add('active');
-            const icons = { cucchiaio: 'spoon.png', cucchiaino: 'teaspoon.png', tazzina: 'mug.png', bicchiere: 'glass.png' };
-            document.getElementById('heroIcon').src = icons[t];
-            updateUI();
-        }
+        // --- PWA Logica Avanzata ---
+        const banner = document.getElementById('pwa-install-banner');
+        const btn = document.getElementById('install-action-btn');
+        const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-        function loadFavorite(f) {
-            state.grams = f.grams;
-            currT_r = -(f.grams / 5 * 22);
-            prevT_r = currT_r;
-            document.getElementById('track').style.transform = `translateX(${currT_r}px)`;
-            selectFood(f.food);
-        }
-
-        function resetGrams() {
-            currT_r = 0; prevT_r = 0; state.grams = 0;
-            document.getElementById('track').style.transform = `translateX(0px)`;
-            updateUI();
-        }
-
-        function updateUI() {
-            const food = db[state.food];
-            const units = state.grams / food.w[state.tool];
-            document.getElementById('gramsDisplay').textContent = state.grams;
-            document.getElementById('resultUnits').textContent = units.toFixed(1);
-            document.getElementById('multiplier').textContent = `x${Math.floor(units)}`;
-            document.getElementById('kcalVal').textContent = Math.round((food.kcal * state.grams) / 100);
-        }
-
-        // --- PWA Register & Install ---
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBtn').classList.remove('hidden');
-        });
-
-        document.getElementById('installBtn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
-                deferredPrompt = null;
+        if (!isInstalled) {
+            if (isIos) {
+                banner.classList.remove('hidden'); btn.classList.add('hidden');
+                document.getElementById('install-instruction').innerHTML = "Premi <span class='font-bold'>Condividi</span> e poi <span class='font-bold'>'Aggiungi a Home'</span>";
             }
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault(); deferredPrompt = e; banner.classList.remove('hidden');
+            });
+        }
+
+        btn.addEventListener('click', async () => {
+            if (!deferredPrompt) return; deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') banner.classList.add('hidden');
+            deferredPrompt = null;
         });
 
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
         }
 
         window.onload = init;
