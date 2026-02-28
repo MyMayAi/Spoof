@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="manifest" href="./manifest.json" />
-  <title>Chef Academy - Drag Edition</title>
+  <title>Chef Academy - Drag & Drop Delete</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -16,6 +16,17 @@
       user-select: none; -webkit-tap-highlight-color: transparent;
     }
     
+    /* Area di eliminazione dinamica */
+    #drop-delete-zone {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100px;
+      background: #fef2f2; border-bottom: 3px dashed #ef4444;
+      display: flex; flex-col; align-items: center; justify-content: center;
+      z-index: 100; transition: transform 0.3s ease, opacity 0.3s ease;
+      transform: translateY(-100%); opacity: 0; pointer-events: none;
+    }
+    #drop-delete-zone.visible { transform: translateY(0); opacity: 1; }
+    #drop-delete-zone.active { background: #fee2e2; border-style: solid; }
+
     .ruler-container { 
       position: relative; width: 100%; height: 100px; 
       overflow: hidden; background: #f8fafc; 
@@ -38,16 +49,20 @@
     .food-card.active { background: #fffbeb; border-color: #f59e0b; }
     .tool-card.active { background: #1e293b !important; color: white !important; }
 
-    /* Stile per i tag trascinabili */
     .fav-item { 
-        transition: transform 0.1s linear, background-color 0.2s ease, opacity 0.2s ease;
-        cursor: grab;
-        touch-action: none;
+        transition: background-color 0.2s ease;
+        cursor: grab; touch-action: none; z-index: 50;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
   </style>
 </head>
 <body class="flex justify-center bg-gray-100">
+  
+  <div id="drop-delete-zone">
+    <svg class="w-8 h-8 text-red-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+    <span class="text-xs font-black text-red-600 uppercase">Rilascia qui per eliminare</span>
+  </div>
+
   <div class="w-full max-w-[460px] min-h-screen flex flex-col bg-white">
     
     <div class="px-5 pt-6 pb-2">
@@ -61,13 +76,13 @@
         <div class="flex-1 px-4 min-w-0">
           <div class="flex items-baseline">
             <span id="intPart" class="text-5xl font-black tracking-tighter">0</span>
-            <span id="toolNameDisplay" class="text-xs font-bold text-slate-400 uppercase ml-2 truncate">Cucchiaio</span>
+            <span id="toolNameDisplay" class="text-xs font-bold text-slate-400 uppercase ml-2">Cucchiaio</span>
           </div>
-          <p id="subPart" class="text-[10px] font-bold text-amber-400 uppercase mt-1">Dose perfetta!</p>
+          <p id="subPart" class="text-[10px] font-bold text-amber-400 uppercase mt-1">Sposta il righello</p>
         </div>
 
-        <div class="flex flex-col items-center justify-between h-full py-1 flex-shrink-0 w-16">
-          <button onclick="saveFavorite()" class="bg-amber-500 text-slate-900 p-4 rounded-full shadow-lg active:scale-90 transition-transform">
+        <div class="flex flex-col items-center justify-between h-full py-1 w-16">
+          <button onclick="saveFavorite()" class="bg-amber-500 text-slate-900 p-4 rounded-full shadow-lg active:scale-90">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v12m6-6H6"></path></svg>
           </button>
           <div class="text-center">
@@ -77,8 +92,8 @@
         </div>
       </div>
 
-      <div id="favoritesList" class="flex space-x-3 mt-4 overflow-x-auto no-scrollbar min-h-[50px] items-center px-2">
-        <span class="text-[9px] text-slate-400 font-bold uppercase">Trascina in alto per eliminare</span>
+      <div id="favoritesList" class="flex space-x-3 mt-4 overflow-x-auto no-scrollbar min-h-[55px] items-center px-2">
+        <span class="text-[9px] text-slate-400 font-bold uppercase">I tuoi salvataggi appariranno qui</span>
       </div>
     </div>
 
@@ -88,18 +103,11 @@
 
     <div class="bg-slate-50 border-t border-slate-100 sticky bottom-0 z-50">
       <div class="flex items-center justify-between px-6 py-3">
-        <button onclick="resetGrams()" class="text-[10px] font-black text-red-500 uppercase bg-red-50 px-4 py-2 rounded-full active:bg-red-100">Reset</button>
-        <div class="text-3xl font-black text-slate-800">
-          <span id="gramsDisplay">0</span><span class="text-sm text-amber-500 ml-1">G</span>
-        </div>
-        <div class="w-16 text-right text-[10px] font-bold text-slate-400 uppercase">Pesatura</div>
+        <button onclick="resetGrams()" class="text-[10px] font-black text-red-500 uppercase bg-red-50 px-4 py-2 rounded-full">Reset</button>
+        <div class="text-3xl font-black text-slate-800"><span id="gramsDisplay">0</span><span class="text-sm text-amber-500 ml-1">G</span></div>
+        <div class="w-16"></div>
       </div>
-
-      <div class="ruler-container" id="ruler">
-          <div class="ruler-pointer"></div>
-          <div class="ruler-track" id="track"></div>
-      </div>
-
+      <div class="ruler-container" id="ruler"><div class="ruler-pointer"></div><div class="ruler-track" id="track"></div></div>
       <div class="p-3 grid grid-cols-4 gap-2 bg-white">
         <button onclick="selectTool('cucchiaio')" id="tool-cucchiaio" class="tool-card active p-3 rounded-2xl bg-slate-50 flex flex-col items-center"><img src="./spoon.png" class="w-6 h-6 mb-1" /><span class="text-[8px] font-black uppercase">Cucchiaio</span></button>
         <button onclick="selectTool('cucchiaino')" id="tool-cucchiaino" class="tool-card p-3 rounded-2xl bg-slate-50 flex flex-col items-center"><img src="./teaspoon.png" class="w-6 h-6 mb-1" /><span class="text-[8px] font-black uppercase">Piccolo</span></button>
@@ -136,36 +144,29 @@
         div.innerHTML = `<img src="${db[k].img}" class="w-12 h-12 mb-2"><span class="text-[10px] font-black uppercase">${db[k].name}</span>`;
         grid.appendChild(div);
       });
+      
+      const track = document.getElementById('track');
+      for (let i = 0; i <= 500; i++) {
+        const t = document.createElement('div');
+        t.className = i % 10 === 0 ? 'tack major' : 'tack';
+        if (i % 10 === 0) t.setAttribute('data-val', i);
+        track.appendChild(t);
+      }
       setupRuler();
-      renderRulerTacks();
-    }
-
-    function renderRulerTacks() {
-        const track = document.getElementById('track');
-        track.innerHTML = '';
-        for (let i = 0; i <= 500; i++) {
-            const t = document.createElement('div');
-            t.className = i % 10 === 0 ? 'tack major' : 'tack';
-            if (i % 10 === 0) t.setAttribute('data-val', i);
-            track.appendChild(t);
-        }
     }
 
     function setupRuler() {
       const r = document.getElementById('ruler');
       let startX = 0, isDown = false;
-      const onStart = (e) => { isDown = true; startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX; };
-      const onMove = (e) => {
+      r.ontouchstart = (e) => { isDown = true; startX = e.touches[0].clientX - currentX; };
+      window.ontouchmove = (e) => {
         if (!isDown) return;
-        let x = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+        let x = e.touches[0].clientX - startX;
         if (x > 0) x = 0;
         currentX = x;
         moveTrack(currentX);
       };
-      const onEnd = () => { isDown = false; };
-      r.addEventListener('touchstart', onStart);
-      window.addEventListener('touchmove', onMove, { passive: false });
-      window.addEventListener('touchend', onEnd);
+      window.ontouchend = () => { isDown = false; };
     }
 
     function moveTrack(x) {
@@ -188,8 +189,7 @@
       document.getElementById('fillLevel').style.height = `${Math.min((units % 1) * 100, 100)}%`;
       document.getElementById('multiplier').textContent = `x${Math.floor(units)}`;
       document.getElementById('toolNameDisplay').textContent = state.tool;
-      const rest = state.grams % tw;
-      document.getElementById('subPart').textContent = rest > 0 ? `+ ${rest}g restanti` : "Dose perfetta!";
+      document.getElementById('subPart').textContent = state.grams % tw > 0 ? `+ ${state.grams % tw}g restanti` : "Dose perfetta!";
     }
 
     function selectTool(t) {
@@ -202,75 +202,71 @@
 
     function resetGrams() { currentX = 0; moveTrack(0); }
 
-    // --- LOGICA DRAG & DELETE PER SALVATAGGI ---
+    // --- DRAG TO DELETE LOGIC ---
 
     function saveFavorite() {
       if (state.grams === 0) return;
-      const f = db[state.food];
-      state.favorites.unshift({ id: Date.now(), grams: state.grams, food: state.food, name: f.name });
-      if (state.favorites.length > 8) state.favorites.pop();
+      state.favorites.unshift({ id: Date.now(), grams: state.grams, food: state.food, name: db[state.food].name });
       renderFavorites();
     }
 
     function renderFavorites() {
       const list = document.getElementById('favoritesList');
-      if (state.favorites.length === 0) {
-        list.innerHTML = '<span class="text-[9px] text-slate-400 font-bold uppercase px-2">Nessun salvataggio</span>';
-        return;
-      }
-      list.innerHTML = '';
+      const zone = document.getElementById('drop-delete-zone');
+      list.innerHTML = state.favorites.length ? '' : '<span class="text-[9px] text-slate-400 font-bold uppercase">Trascina su per eliminare</span>';
+      
       state.favorites.forEach(f => {
         const item = document.createElement('div');
-        item.className = "fav-item bg-amber-100 border border-amber-200 rounded-xl px-4 py-2 flex-shrink-0 text-center";
-        item.innerHTML = `<span class="text-[10px] font-black uppercase text-amber-800 block">${f.grams}g</span><span class="text-[8px] font-bold text-amber-600 block">${f.name}</span>`;
+        item.className = "fav-item bg-amber-100 border border-amber-200 rounded-2xl px-4 py-2 flex-shrink-0 text-center";
+        item.innerHTML = `<span class="text-[10px] font-black uppercase text-amber-800 block">${f.grams}g</span><span class="text-[8px] font-bold text-amber-600">${f.name}</span>`;
         
-        // Setup Drag events
-        let startY = 0, currentY = 0;
-        item.ontouchstart = (e) => { 
-            startY = e.touches[0].clientY; 
-            item.style.transition = 'none';
+        let startX = 0, startY = 0, moveY = 0;
+        
+        item.ontouchstart = (e) => {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          item.style.transition = 'none';
+          zone.classList.add('visible'); // Mostra la zona rossa tratteggiata
         };
+
         item.ontouchmove = (e) => {
-            currentY = e.touches[0].clientY - startY;
-            if (currentY < 0) { // Trascina solo verso l'alto
-                item.style.transform = `translateY(${currentY}px)`;
-                const opacity = 1 - Math.abs(currentY / 100);
-                item.style.opacity = opacity;
-                if (currentY < -60) item.style.backgroundColor = "#fee2e2";
-                else item.style.backgroundColor = "#fef3c7";
-            }
-        };
-        item.ontouchend = () => {
-            item.style.transition = 'all 0.3s ease';
-            if (currentY < -70) {
-                if (navigator.vibrate) navigator.vibrate(20);
-                deleteFavorite(f.id);
+          moveY = e.touches[0].clientY - startY;
+          let moveX = e.touches[0].clientX - startX;
+          
+          if (moveY < 0) { // Solo se trascina verso l'alto
+            item.style.transform = `translate(0px, ${moveY}px)`;
+            // Se entra nella zona alta (circa 100px dall'alto)
+            if (e.touches[0].clientY < 110) {
+              zone.classList.add('active');
+              item.style.backgroundColor = "#fee2e2";
             } else {
-                item.style.transform = 'translateY(0)';
-                item.style.opacity = '1';
-                item.style.backgroundColor = "#fef3c7";
-                // Se è stato solo un click (non un drag), carica il valore
-                if (Math.abs(currentY) < 5) loadFavorite(f.grams, f.food);
+              zone.classList.remove('active');
+              item.style.backgroundColor = "#fef3c7";
             }
-            currentY = 0;
+          }
+        };
+
+        item.ontouchend = (e) => {
+          zone.classList.remove('visible', 'active');
+          if (moveY < -80 && e.changedTouches[0].clientY < 110) {
+            if (navigator.vibrate) navigator.vibrate(30);
+            state.favorites = state.favorites.filter(x => x.id !== f.id);
+            renderFavorites();
+          } else {
+            item.style.transition = 'all 0.3s ease';
+            item.style.transform = 'translate(0,0)';
+            item.style.backgroundColor = "#fef3c7";
+            // Se è solo un click, carica il valore
+            if (Math.abs(moveY) < 5) {
+                state.food = f.food;
+                currentX = -(f.grams * 16);
+                moveTrack(currentX);
+            }
+          }
+          moveY = 0;
         };
         list.appendChild(item);
       });
-    }
-
-    function loadFavorite(g, foodKey) {
-      state.food = foodKey;
-      document.querySelectorAll('.food-card').forEach(c => {
-          c.classList.remove('active');
-          if(c.innerText.toLowerCase().includes(db[foodKey].name.toLowerCase())) c.classList.add('active');
-      });
-      currentX = -(g * 16);
-      moveTrack(currentX);
-    }
-
-    function deleteFavorite(id) {
-      state.favorites = state.favorites.filter(f => f.id !== id);
-      renderFavorites();
     }
 
     init();
