@@ -4,162 +4,169 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Chef Academy - Pro Suite</title>
+  <title>Chef Academy - Evolution</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; touch-action: none; overflow: hidden; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; touch-action: none; overflow: hidden; color: white; }
     
-    /* Menu Laterale */
+    /* Navigazione */
     #side-menu {
       position: fixed; top: 0; left: 0; width: 280px; height: 100%;
-      background: #0f172a; z-index: 200; transform: translateX(-100%);
+      background: #1e293b; z-index: 200; transform: translateX(-100%);
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+      box-shadow: 20px 0 50px rgba(0,0,0,0.8);
     }
     #side-menu.open { transform: translateX(0); }
-    #menu-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      z-index: 150; display: none; backdrop-filter: blur(4px);
+    #menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 150; display: none; backdrop-filter: blur(8px); }
+
+    .page { position: absolute; inset: 0; background: #0f172a; display: none; flex-direction: column; }
+    .page.active { display: flex; }
+
+    /* --- STILI NUOVO FORMATO (GALAXY UI) --- */
+    .galaxy-container { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+    
+    .orbit-outer {
+      position: relative; width: 320px; height: 320px;
+      border-radius: 50%; border: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: center;
     }
 
-    /* Pagine */
-    .page { position: absolute; inset: 0; background: white; transition: opacity 0.3s; display: none; }
-    .page.active { display: flex; flex-direction: column; }
+    .main-dial {
+      position: relative; width: 220px; height: 220px;
+      background: radial-gradient(circle at 30% 30%, #334155, #0f172a);
+      border-radius: 50%; box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.1);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 10; border: 4px solid #1e293b;
+    }
 
-    /* UI Bilancia (Ripresa dal precedente) */
-    .hero-circle { position: relative; width: 85px; height: 85px; background: #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid #334155; }
-    .progress-ring { position: absolute; transform: rotate(-90deg); }
-    .progress-ring__circle { stroke: #fbbf24; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; stroke-linecap: round; transition: all 0.3s; }
-    
-    .ruler-container { position: relative; width: 100%; height: 100px; overflow: hidden; background: #f8fafc; }
-    .ruler-track { display: flex; align-items: flex-end; height: 100%; position: absolute; left: 50%; }
-    .tack { width: 2px; background: #e2e8f0; margin-right: 16px; flex-shrink: 0; }
-    .tack.major { height: 40px; background: #cbd5e1; position: relative; }
-    .tack.major::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 800; color: #94a3b8; }
+    .orbital-slider {
+      position: absolute; width: 300px; height: 300px;
+      border-radius: 50%; border: 2px solid transparent;
+      border-top-color: #fbbf24; transition: transform 0.1s linear;
+      filter: drop-shadow(0 0 10px #fbbf24);
+    }
 
-    /* Stili Convertitore */
-    .conv-card { background: #f8fafc; border: 2px solid #f1f5f9; border-radius: 2rem; padding: 20px; text-align: center; }
-    .conv-card.active { border-color: #fbbf24; background: #fffbeb; }
+    .glass-pill {
+      background: rgba(255,255,255,0.03); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
+    }
 
-    #drop-delete-zone { position: fixed; top: 0; width: 100%; height: 110px; background: #fef2f2; border-bottom: 3px dashed #ef4444; z-index: 100; transform: translateY(-100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    #drop-delete-zone.visible { transform: translateY(0); }
+    /* Floating Tags */
+    .float-tag { position: absolute; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+
+    /* Animazioni */
+    @keyframes pulse-glow { 0% { opacity: 0.3; } 50% { opacity: 0.6; } 100% { opacity: 0.3; } }
+    .glow-active { animation: pulse-glow 2s infinite; }
+
+    /* Custom Input Range per Galaxy */
+    .galaxy-range {
+      -webkit-appearance: none; width: 80%; height: 4px; background: #1e293b;
+      border-radius: 2px; outline: none; margin-top: 40px;
+    }
+    .galaxy-range::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 24px; height: 24px; background: #fbbf24;
+      border-radius: 50%; cursor: pointer; box-shadow: 0 0 15px #fbbf24;
+    }
   </style>
 </head>
-<body class="flex justify-center">
+<body>
 
     <div id="menu-overlay" onclick="toggleMenu()"></div>
-    <nav id="side-menu" class="p-8 text-white">
+    <nav id="side-menu" class="p-8">
         <div class="mb-12">
-            <h2 class="text-2xl font-black text-amber-500">CHEF<br>ACADEMY</h2>
-            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">Professional Tools</p>
+            <h2 class="text-2xl font-black text-amber-500 tracking-tighter">CHEF ACADEMY</h2>
+            <div class="h-1 w-10 bg-amber-500 mt-2"></div>
         </div>
-        <div class="space-y-4">
-            <button onclick="switchPage('bilancia')" class="w-full flex items-center p-4 rounded-2xl bg-slate-800 text-amber-500 font-bold">
-                <span class="mr-4">⚖️</span> Bilancia Dosatrice
+        <div class="space-y-3">
+            <button onclick="switchPage('nuovo-formato')" class="w-full flex items-center p-4 rounded-2xl bg-amber-500 text-slate-900 font-black shadow-lg">
+                <span class="mr-3">✨</span> NUOVO FORMATO
             </button>
-            <button onclick="switchPage('convertitore')" class="w-full flex items-center p-4 rounded-2xl hover:bg-slate-800 transition-colors font-bold text-slate-300">
-                <span class="mr-4">🍳</span> Crudo vs Cotto
+            <button onclick="switchPage('bilancia')" class="w-full flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-300 font-bold">
+                <span class="mr-3">⚖️</span> Bilancia Classic
+            </button>
+            <button onclick="switchPage('convertitore')" class="w-full flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-300 font-bold">
+                <span class="mr-3">🍳</span> Crudo vs Cotto
             </button>
         </div>
-        <div class="absolute bottom-10 left-8 text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Versione 2.0.4 - Pro Suite</div>
     </nav>
 
-    <div id="page-bilancia" class="page active w-full max-w-[460px]">
-        <div id="drop-delete-zone">
-            <div class="bg-red-500 p-2 rounded-full mb-1"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></div>
-            <span class="text-[10px] font-black text-red-600 uppercase">Elimina</span>
-        </div>
-
-        <header class="p-6 flex items-center justify-between">
-            <button onclick="toggleMenu()" class="p-3 bg-slate-100 rounded-2xl text-slate-900 active:scale-90 transition-transform">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <span class="font-black text-sm uppercase tracking-widest text-slate-400">Bilancia</span>
+    <div id="page-nuovo-formato" class="page active">
+        <header class="p-6 flex justify-between items-center">
+            <button onclick="toggleMenu()" class="p-3 glass-pill text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+            <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-50">Evolution UI</span>
             <div class="w-12"></div>
         </header>
 
-        <div class="px-5">
-            <div class="bg-slate-900 rounded-[2.5rem] p-6 text-white flex items-center justify-between h-40 relative">
-                <div class="hero-circle flex-shrink-0">
-                    <svg class="progress-ring" width="85" height="85"><circle class="progress-ring__circle" stroke-width="5" fill="transparent" r="40" cx="42.5" cy="42.5"/></svg>
-                    <img id="heroIcon" src="./spoon.png" class="w-10 h-10 object-contain z-10" />
-                    <div id="multiplier" class="absolute bottom-2 bg-amber-500 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full z-20">x0</div>
+        <div class="galaxy-container">
+            <div class="float-tag top-10">Dose Corrente</div>
+            
+            <div class="orbit-outer">
+                <div id="galaxyOrbital" class="orbital-slider"></div>
+                
+                <div class="main-dial">
+                    <span id="gxUnits" class="text-7xl font-black tracking-tighter">0</span>
+                    <span id="gxLabel" class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mt-2">Cucchiai</span>
+                    <div class="flex items-center mt-4 glass-pill px-3 py-1">
+                        <span id="gxGrams" class="text-sm font-bold text-white">0</span>
+                        <span class="text-[10px] ml-1 opacity-50">grammi</span>
+                    </div>
                 </div>
-                <div class="flex-1 px-4">
-                    <div class="flex items-baseline"><span id="intPart" class="text-6xl font-black">0</span><span class="text-[10px] text-slate-400 uppercase ml-2" id="toolNameDisplay">Cucchiaio</span></div>
-                    <p id="subPart" class="text-[10px] text-amber-400 font-bold uppercase mt-1">Sposta il righello</p>
-                </div>
-                <div class="flex flex-col items-center justify-between h-full py-1">
-                    <button onclick="saveFavorite()" class="bg-amber-500 text-slate-900 p-4 rounded-full shadow-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v12m6-6H6"></path></svg></button>
-                    <div class="text-center"><span id="kcalVal" class="text-xl font-black text-amber-500">0</span><span class="text-[8px] text-slate-500 block uppercase">Kcal</span></div>
+
+                <div class="absolute -right-4 top-20 glass-pill p-3 text-center min-w-[60px]">
+                    <span id="gxKcal" class="text-lg font-black text-amber-500 block">0</span>
+                    <span class="text-[8px] uppercase opacity-40">Kcal</span>
                 </div>
             </div>
-            <div id="favoritesList" class="flex space-x-3 mt-4 overflow-x-auto no-scrollbar min-h-[60px] items-center"></div>
+
+            <div class="w-full px-6 mt-12 overflow-x-auto no-scrollbar flex space-x-4 py-4">
+                <div onclick="selectGxFood('farina')" class="gx-food active flex flex-col items-center flex-shrink-0" data-food="farina">
+                    <div class="w-14 h-14 rounded-full glass-pill flex items-center justify-center mb-2"><img src="./flour.png" class="w-8"></div>
+                    <span class="text-[8px] font-bold uppercase">Farina</span>
+                </div>
+                <div onclick="selectGxFood('olio')" class="gx-food flex flex-col items-center flex-shrink-0" data-food="olio">
+                    <div class="w-14 h-14 rounded-full glass-pill flex items-center justify-center mb-2"><img src="./oil.png" class="w-8"></div>
+                    <span class="text-[8px] font-bold uppercase">Olio</span>
+                </div>
+                <div onclick="selectGxFood('riso')" class="gx-food flex flex-col items-center flex-shrink-0" data-food="riso">
+                    <div class="w-14 h-14 rounded-full glass-pill flex items-center justify-center mb-2"><img src="./rice.png" class="w-8"></div>
+                    <span class="text-[8px] font-bold uppercase">Riso</span>
+                </div>
+            </div>
+
+            <input type="range" id="gxSlider" min="0" max="500" value="0" oninput="updateGalaxy()" class="galaxy-range">
+            <p id="gxSubText" class="text-[10px] font-bold text-amber-500/50 uppercase mt-4 tracking-widest">Sposta il cursore per pesare</p>
         </div>
 
-        <div class="flex-1 px-4 overflow-y-auto no-scrollbar py-4">
-            <div class="grid grid-cols-3 gap-3" id="ingredientGrid"></div>
-        </div>
-
-        <footer class="bg-slate-50 border-t border-slate-200 p-3">
-            <div class="flex justify-between items-center px-4 mb-2">
-                <button onclick="resetGrams()" class="text-[10px] font-black text-red-500 uppercase px-4 py-2 bg-red-50 rounded-full">Reset</button>
-                <div class="text-4xl font-black text-slate-800"><span id="gramsDisplay">0</span><span class="text-sm text-amber-500 ml-1">G</span></div>
-            </div>
-            <div class="ruler-container" id="ruler"><div class="absolute left-1/2 -translate-x-1/2 bottom-0 w-1 h-16 bg-amber-500 z-30 rounded-t-full"></div><div class="ruler-track" id="track"></div></div>
-            <div class="grid grid-cols-4 gap-2 mt-4 bg-white p-2 rounded-3xl">
-                <button onclick="selectTool('cucchiaio')" id="tool-cucchiaio" class="tool-card active p-3 flex flex-col items-center rounded-2xl bg-slate-50"><img src="./spoon.png" class="w-6 h-6 mb-1"><span class="text-[8px] font-black uppercase">Cucchiaio</span></button>
-                <button onclick="selectTool('cucchiaino')" id="tool-cucchiaino" class="tool-card p-3 flex flex-col items-center rounded-2xl bg-slate-50"><img src="./teaspoon.png" class="w-6 h-6 mb-1"><span class="text-[8px] font-black uppercase">Piccolo</span></button>
-                <button onclick="selectTool('tazzina')" id="tool-tazzina" class="tool-card p-3 flex flex-col items-center rounded-2xl bg-slate-50"><img src="./mug.png" class="w-6 h-6 mb-1"><span class="text-[8px] font-black uppercase">Tazzina</span></button>
-                <button onclick="selectTool('bicchiere')" id="tool-bicchiere" class="tool-card p-3 flex flex-col items-center rounded-2xl bg-slate-50"><img src="./glass.png" class="w-6 h-6 mb-1"><span class="text-[8px] font-black uppercase">Bicchiere</span></button>
-            </div>
+        <footer class="p-8 flex justify-around items-center glass-pill mx-6 mb-8">
+            <button onclick="setGxTool('cucchiaio')" class="gx-tool active text-amber-500" id="gx-cucchiaio">🥄</button>
+            <button onclick="setGxTool('cucchiaino')" class="gx-tool opacity-30" id="gx-cucchiaino">🍴</button>
+            <button onclick="setGxTool('tazzina')" class="gx-tool opacity-30" id="gx-tazzina">☕</button>
+            <button onclick="setGxTool('bicchiere')" class="gx-tool opacity-30" id="gx-bicchiere">🥃</button>
         </footer>
     </div>
 
-    <div id="page-convertitore" class="page w-full max-w-[460px] bg-slate-50">
-        <header class="p-6 flex items-center justify-between bg-white border-b border-slate-100">
-            <button onclick="toggleMenu()" class="p-3 bg-slate-100 rounded-2xl text-slate-900"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
-            <span class="font-black text-sm uppercase tracking-widest text-slate-400">Crudo vs Cotto</span>
-            <div class="w-12"></div>
-        </header>
+    <div id="page-bilancia" class="page">
+        <div class="flex-1 flex items-center justify-center text-slate-500 text-xs font-bold uppercase">
+            Sezione Classic - Vedi codice precedente
+        </div>
+    </div>
 
-        <div class="p-6 space-y-8 flex-1 overflow-y-auto no-scrollbar">
-            <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <div class="text-center flex-1 border-r border-slate-800">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Peso Crudo</span>
-                        <span id="rawVal" class="text-4xl font-black text-amber-500">100</span><span class="text-amber-500 font-bold ml-1">g</span>
-                    </div>
-                    <div class="text-center flex-1">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Peso Cotto</span>
-                        <span id="cookedVal" class="text-4xl font-black text-emerald-400">250</span><span class="text-emerald-400 font-bold ml-1">g</span>
-                    </div>
-                </div>
-                <div class="bg-slate-800 rounded-2xl p-4 text-center">
-                    <p id="convHint" class="text-[10px] font-bold text-slate-400 uppercase italic">"La pasta aumenta di circa 2.5 volte"</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="selectConv('pasta', 2.5)" class="conv-card active" id="conv-pasta">🍝 Pasta Secca</button>
-                <button onclick="selectConv('riso', 2.8)" class="conv-card" id="conv-riso">🍚 Riso</button>
-                <button onclick="selectConv('carne', 0.7)" class="conv-card" id="conv-carne">🥩 Carne Rossa</button>
-                <button onclick="selectConv('legumi', 3.0)" class="conv-card" id="conv-legumi">🫘 Legumi Secchi</button>
-                <button onclick="selectConv('pollo', 0.8)" class="conv-card" id="conv-pollo">🍗 Pollo</button>
-                <button onclick="selectConv('spinaci', 0.15)" class="conv-card" id="conv-spinaci">🥬 Spinaci</button>
-            </div>
-
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <label class="text-[10px] font-black text-slate-400 uppercase mb-4 block">Regola il peso crudo</label>
-                <input type="range" id="rawSlider" min="10" max="500" value="100" oninput="updateConv()" class="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-amber-500">
-                <div class="flex justify-between mt-2 text-[10px] font-black text-slate-300 uppercase"><span>10g</span><span>500g</span></div>
-            </div>
+    <div id="page-convertitore" class="page">
+        <div class="flex-1 flex items-center justify-center text-slate-500 text-xs font-bold uppercase">
+            Sezione Convertitore - Vedi codice precedente
         </div>
     </div>
 
     <script>
-        // --- LOGICA NAVIGAZIONE ---
+        const db = {
+            farina: { name: "Farina", kcal: 364, w: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120 } },
+            olio: { name: "Olio", kcal: 884, w: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180 } },
+            riso: { name: "Riso", kcal: 130, w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90, bicchiere: 220 } }
+        };
+
+        let gxState = { food: 'farina', tool: 'cucchiaio', grams: 0 };
+
         function toggleMenu() {
             const menu = document.getElementById('side-menu');
             const overlay = document.getElementById('menu-overlay');
@@ -174,165 +181,54 @@
             toggleMenu();
         }
 
-        // --- LOGICA CONVERTITORE ---
-        let currentConvRatio = 2.5;
-        function selectConv(id, ratio) {
-            currentConvRatio = ratio;
-            document.querySelectorAll('.conv-card').forEach(c => c.classList.remove('active'));
-            document.getElementById('conv-' + id).classList.add('active');
+        // --- LOGICA NUOVO FORMATO (DEEP DEBUG) ---
+
+        function updateGalaxy() {
+            const val = parseInt(document.getElementById('gxSlider').value);
+            gxState.grams = val;
             
-            const hints = { pasta: "Aumenta di 2.5 volte", riso: "Quasi triplica il peso", carne: "Perde circa il 30%", legumi: "Triplicano assorbendo acqua", pollo: "Perde circa il 20%", spinaci: "Si riducono drasticamente" };
-            document.getElementById('convHint').innerText = hints[id];
-            updateConv();
-        }
-
-        function updateConv() {
-            const raw = document.getElementById('rawSlider').value;
-            document.getElementById('rawVal').innerText = raw;
-            document.getElementById('cookedVal').innerText = Math.round(raw * currentConvRatio);
-        }
-
-        // --- LOGICA BILANCIA (DEEP DEBUGGED) ---
-        const db = {
-            farina: { name: "Farina", img: "./flour.png", w: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120 }, kcal: 364 },
-            olio: { name: "Olio", img: "./oil.png", w: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180 }, kcal: 884 },
-            zucchero: { name: "Zucchero", img: "./sugar.png", w: { cucchiaio: 15, cucchiaino: 5, tazzina: 80, bicchiere: 180 }, kcal: 387 },
-            sale: { name: "Sale", img: "./salt.png", w: { cucchiaio: 18, cucchiaino: 6, tazzina: 110, bicchiere: 250 }, kcal: 0 },
-            riso: { name: "Riso", img: "./rice.png", w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90, bicchiere: 220 }, kcal: 130 },
-            latte: { name: "Latte", img: "./milk.png", w: { cucchiaio: 15, cucchiaino: 5, tazzina: 70, bicchiere: 200 }, kcal: 64 }
-        };
-
-        let state = { food: 'farina', tool: 'cucchiaio', grams: 0, favorites: [] };
-        let currentX = 0, prevGrams = 0;
-
-        function initBilancia() {
-            const grid = document.getElementById('ingredientGrid');
-            Object.keys(db).forEach(k => {
-                const div = document.createElement('div');
-                div.className = `food-card p-4 rounded-[2rem] bg-slate-50 flex flex-col items-center cursor-pointer ${k === state.food ? 'active' : ''}`;
-                div.onclick = () => {
-                    state.food = k;
-                    document.querySelectorAll('.food-card').forEach(c => c.classList.remove('border-amber-500', 'bg-fffbeb', 'active'));
-                    div.classList.add('active');
-                    updateUI();
-                };
-                div.innerHTML = `<img src="${db[k].img}" class="w-12 h-12 mb-2"><span class="text-[9px] font-black uppercase text-slate-500">${db[k].name}</span>`;
-                grid.appendChild(div);
-            });
-            
-            const track = document.getElementById('track');
-            for (let i = 0; i <= 500; i++) {
-                const t = document.createElement('div');
-                t.className = i % 10 === 0 ? 'tack major' : 'tack';
-                if (i % 10 === 0) t.setAttribute('data-val', i);
-                track.appendChild(t);
-            }
-            setupRuler();
-            updateUI();
-        }
-
-        function setupRuler() {
-            const r = document.getElementById('ruler');
-            let startX = 0, isDown = false;
-            r.ontouchstart = (e) => { isDown = true; startX = e.touches[0].clientX - currentX; };
-            window.addEventListener('touchmove', (e) => {
-                if (!isDown) return;
-                let x = e.touches[0].clientX - startX;
-                if (x > 0) x = 0;
-                currentX = x;
-                moveTrack(currentX);
-            }, { passive: false });
-            window.addEventListener('touchend', () => isDown = false);
-        }
-
-        function moveTrack(x) {
-            document.getElementById('track').style.transform = `translateX(${x}px)`;
-            state.grams = Math.abs(Math.round(x / 16));
-            if (state.grams !== prevGrams) {
-                if (navigator.vibrate) navigator.vibrate(5);
-                prevGrams = state.grams;
-            }
-            updateUI();
-        }
-
-        function updateUI() {
-            const f = db[state.food];
-            const tw = f.w[state.tool];
-            const units = state.grams / tw;
+            const f = db[gxState.food];
+            const tw = f.w[gxState.tool];
+            const units = val / tw;
+            const floorUnits = Math.floor(units);
             const percent = (units % 1) * 100;
 
-            document.getElementById('intPart').textContent = Math.floor(units);
-            document.getElementById('gramsDisplay').textContent = state.grams;
-            document.getElementById('kcalVal').textContent = Math.round((f.kcal * state.grams) / 100);
-            document.getElementById('multiplier').textContent = `x${Math.floor(units)}`;
-            document.getElementById('toolNameDisplay').textContent = state.tool;
+            // Update UI
+            document.getElementById('gxUnits').innerText = floorUnits;
+            document.getElementById('gxGrams').innerText = val;
+            document.getElementById('gxKcal').innerText = Math.round((f.kcal * val) / 100);
             
-            const circle = document.querySelector('.progress-ring__circle');
-            const offset = 251.2 - ( (percent === 0 && units > 0 ? 100 : percent) / 100 * 251.2);
-            circle.style.strokeDashoffset = offset;
-            circle.style.stroke = percent >= 98 ? "#22c55e" : "#fbbf24";
-            document.getElementById('heroIcon').style.transform = percent >= 98 ? 'scale(1.2)' : 'scale(1)';
-            document.getElementById('subPart').textContent = state.grams % tw > 0 ? `+ ${state.grams % tw}g restanti` : "Dose perfetta!";
-        }
-
-        function selectTool(t) {
-            state.tool = t;
-            document.querySelectorAll('.tool-card').forEach(b => b.classList.remove('active', 'bg-slate-800'));
-            document.getElementById(`tool-${t}`).classList.add('active');
-            document.getElementById('heroIcon').src = `./${t === 'cucchiaino' ? 'teaspoon' : t === 'tazzina' ? 'mug' : t === 'bicchiere' ? 'glass' : 'spoon'}.png`;
-            updateUI();
-        }
-
-        function resetGrams() { currentX = 0; moveTrack(0); }
-
-        function saveFavorite() {
-            if (state.grams === 0) return;
-            state.favorites.unshift({ id: Date.now(), grams: state.grams, food: state.food, name: db[state.food].name });
-            renderFavorites();
-        }
-
-        function renderFavorites() {
-            const list = document.getElementById('favoritesList');
-            const zone = document.getElementById('drop-delete-zone');
-            list.innerHTML = state.favorites.length ? '' : '<span class="text-[10px] text-slate-400 font-bold uppercase mx-auto">Nessun salvataggio</span>';
+            // Ruota l'anello orbitale (0-360 gradi basato sul progresso della dose)
+            const rotation = (percent / 100) * 360;
+            document.getElementById('galaxyOrbital').style.transform = `rotate(${rotation}deg)`;
             
-            state.favorites.forEach(f => {
-                const item = document.createElement('div');
-                item.className = "fav-item bg-amber-500 text-slate-900 rounded-2xl px-4 py-2 flex-shrink-0 text-center shadow-md";
-                item.innerHTML = `<span class="text-[12px] font-black block">${f.grams}g</span><span class="text-[8px] font-bold uppercase opacity-80">${f.name}</span>`;
-                
-                let startY = 0, moveY = 0;
-                item.ontouchstart = (e) => { startY = e.touches[0].clientY; zone.classList.add('visible'); item.style.transition = 'none'; };
-                item.ontouchmove = (e) => {
-                    moveY = e.touches[0].clientY - startY;
-                    if (moveY < 0) {
-                        item.style.transform = `translateY(${moveY}px)`;
-                        if (e.touches[0].clientY < 110) zone.classList.add('bg-red-200');
-                        else zone.classList.remove('bg-red-200');
-                    }
-                };
-                item.ontouchend = (e) => {
-                    zone.classList.remove('visible', 'bg-red-200');
-                    if (moveY < -70 && e.changedTouches[0].clientY < 110) {
-                        if (navigator.vibrate) navigator.vibrate(20);
-                        state.favorites = state.favorites.filter(x => x.id !== f.id);
-                        renderFavorites();
-                    } else {
-                        item.style.transition = 'all 0.3s ease';
-                        item.style.transform = 'translateY(0)';
-                        if (Math.abs(moveY) < 5) {
-                            state.food = f.food;
-                            currentX = -(f.grams * 16);
-                            moveTrack(currentX);
-                        }
-                    }
-                };
-                list.appendChild(item);
-            });
+            // Vibrazione agli scatti
+            if (val % tw === 0 && val !== 0) {
+                if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
+                document.querySelector('.main-dial').style.borderColor = "#fbbf24";
+                setTimeout(() => document.querySelector('.main-dial').style.borderColor = "#1e293b", 200);
+            }
+
+            document.getElementById('gxSubText').innerText = val % tw > 0 ? `+ ${val % tw}g restanti` : "Dose Perfetta!";
         }
 
-        initBilancia();
-        updateConv();
+        function selectGxFood(key) {
+            gxState.food = key;
+            document.querySelectorAll('.gx-food').forEach(el => el.style.opacity = "0.3");
+            event.currentTarget.style.opacity = "1";
+            updateGalaxy();
+        }
+
+        function setGxTool(tool) {
+            gxState.tool = tool;
+            document.querySelectorAll('.gx-tool').forEach(el => el.classList.add('opacity-30'));
+            document.getElementById('gx-' + tool).classList.remove('opacity-30');
+            document.getElementById('gxLabel').innerText = tool;
+            updateGalaxy();
+        }
+
+        // Inizializzazione
+        updateGalaxy();
     </script>
 </body>
 </html>
