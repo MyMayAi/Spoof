@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "io.github.mymayai.twa",
-        "sha256_cert_fingerprints": ["C1:03:0A:04:17:0A:75:92:19:47:21:7D:47:80:08:36:71:22:A7:1F:9B:59:F4:6A:8E:44:5B:96:DE:57:9A:F3"]
+        "sha256_cert_fingerprints": ["16:F9:37:E4:01:A8:A7:5A:24:21:B7:7F:3D:9B:8B:32:10:BF:E0:6A:9B:6B:C0:8E:48:5C:65:2E:D2:DA:68:0E"]
       }
     }]
