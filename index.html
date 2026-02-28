@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="manifest" href="./manifest.json" />
-  <title>Chef Academy - Pro</title>
+  <title>Chef Academy - Drag Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -34,12 +34,16 @@
       background: #f59e0b; transform: translateX(-50%); z-index: 30; border-radius: 4px 4px 0 0; 
     }
     
-    .food-card { transition: all 0.2s ease; border: 2px solid transparent; cursor: pointer; }
+    .food-card { transition: all 0.2s ease; border: 2px solid transparent; }
     .food-card.active { background: #fffbeb; border-color: #f59e0b; }
     .tool-card.active { background: #1e293b !important; color: white !important; }
-    
-    .fav-tag { animation: pop 0.3s ease-out; }
-    @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* Stile per i tag trascinabili */
+    .fav-item { 
+        transition: transform 0.1s linear, background-color 0.2s ease, opacity 0.2s ease;
+        cursor: grab;
+        touch-action: none;
+    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
   </style>
 </head>
@@ -48,7 +52,6 @@
     
     <div class="px-5 pt-6 pb-2">
       <div class="bg-slate-900 rounded-[2.5rem] p-6 shadow-2xl text-white flex items-center h-40">
-        
         <div class="relative w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center overflow-hidden border-4 border-slate-700 flex-shrink-0">
           <img id="heroIcon" src="./spoon.png" class="w-10 h-10 object-contain opacity-40 z-10" />
           <div id="fillLevel" class="absolute bottom-0 left-0 w-full bg-cyan-400 transition-all duration-300" style="height: 0%"></div>
@@ -60,7 +63,7 @@
             <span id="intPart" class="text-5xl font-black tracking-tighter">0</span>
             <span id="toolNameDisplay" class="text-xs font-bold text-slate-400 uppercase ml-2 truncate">Cucchiaio</span>
           </div>
-          <p id="subPart" class="text-[10px] font-bold text-amber-400 uppercase mt-1">Pesatura...</p>
+          <p id="subPart" class="text-[10px] font-bold text-amber-400 uppercase mt-1">Dose perfetta!</p>
         </div>
 
         <div class="flex flex-col items-center justify-between h-full py-1 flex-shrink-0 w-16">
@@ -74,8 +77,8 @@
         </div>
       </div>
 
-      <div id="favoritesList" class="flex space-x-2 mt-4 overflow-x-auto no-scrollbar min-h-[40px] items-center">
-        <span class="text-[9px] text-slate-400 font-bold uppercase px-2">Nessun salvataggio</span>
+      <div id="favoritesList" class="flex space-x-3 mt-4 overflow-x-auto no-scrollbar min-h-[50px] items-center px-2">
+        <span class="text-[9px] text-slate-400 font-bold uppercase">Trascina in alto per eliminare</span>
       </div>
     </div>
 
@@ -89,7 +92,7 @@
         <div class="text-3xl font-black text-slate-800">
           <span id="gramsDisplay">0</span><span class="text-sm text-amber-500 ml-1">G</span>
         </div>
-        <div class="w-16 text-right text-[10px] font-bold text-slate-400 uppercase">Grammi</div>
+        <div class="w-16 text-right text-[10px] font-bold text-slate-400 uppercase">Pesatura</div>
       </div>
 
       <div class="ruler-container" id="ruler">
@@ -133,21 +136,24 @@
         div.innerHTML = `<img src="${db[k].img}" class="w-12 h-12 mb-2"><span class="text-[10px] font-black uppercase">${db[k].name}</span>`;
         grid.appendChild(div);
       });
-
-      const track = document.getElementById('track');
-      for (let i = 0; i <= 500; i++) {
-        const t = document.createElement('div');
-        t.className = i % 10 === 0 ? 'tack major' : 'tack';
-        if (i % 10 === 0) t.setAttribute('data-val', i);
-        track.appendChild(t);
-      }
       setupRuler();
+      renderRulerTacks();
+    }
+
+    function renderRulerTacks() {
+        const track = document.getElementById('track');
+        track.innerHTML = '';
+        for (let i = 0; i <= 500; i++) {
+            const t = document.createElement('div');
+            t.className = i % 10 === 0 ? 'tack major' : 'tack';
+            if (i % 10 === 0) t.setAttribute('data-val', i);
+            track.appendChild(t);
+        }
     }
 
     function setupRuler() {
       const r = document.getElementById('ruler');
       let startX = 0, isDown = false;
-
       const onStart = (e) => { isDown = true; startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX; };
       const onMove = (e) => {
         if (!isDown) return;
@@ -157,7 +163,6 @@
         moveTrack(currentX);
       };
       const onEnd = () => { isDown = false; };
-
       r.addEventListener('touchstart', onStart);
       window.addEventListener('touchmove', onMove, { passive: false });
       window.addEventListener('touchend', onEnd);
@@ -195,19 +200,15 @@
       updateUI();
     }
 
-    function resetGrams() {
-      currentX = 0;
-      moveTrack(0);
-    }
+    function resetGrams() { currentX = 0; moveTrack(0); }
 
-    // --- FUNZIONI SALVATAGGIO ---
+    // --- LOGICA DRAG & DELETE PER SALVATAGGI ---
 
     function saveFavorite() {
       if (state.grams === 0) return;
       const f = db[state.food];
-      const newFav = { id: Date.now(), grams: state.grams, food: state.food, name: f.name };
-      state.favorites.unshift(newFav);
-      if (state.favorites.length > 10) state.favorites.pop();
+      state.favorites.unshift({ id: Date.now(), grams: state.grams, food: state.food, name: f.name });
+      if (state.favorites.length > 8) state.favorites.pop();
       renderFavorites();
     }
 
@@ -217,23 +218,52 @@
         list.innerHTML = '<span class="text-[9px] text-slate-400 font-bold uppercase px-2">Nessun salvataggio</span>';
         return;
       }
-      list.innerHTML = state.favorites.map(f => `
-        <div class="fav-tag flex items-center bg-amber-100 border border-amber-200 rounded-full px-3 py-1 flex-shrink-0">
-          <span onclick="loadFavorite(${f.grams}, '${f.food}')" class="text-[9px] font-black uppercase text-amber-700 cursor-pointer">
-            ${f.grams}g ${f.name}
-          </span>
-          <button onclick="deleteFavorite(${f.id})" class="ml-2 text-amber-400 hover:text-red-500 font-bold text-xs">×</button>
-        </div>
-      `).join('');
+      list.innerHTML = '';
+      state.favorites.forEach(f => {
+        const item = document.createElement('div');
+        item.className = "fav-item bg-amber-100 border border-amber-200 rounded-xl px-4 py-2 flex-shrink-0 text-center";
+        item.innerHTML = `<span class="text-[10px] font-black uppercase text-amber-800 block">${f.grams}g</span><span class="text-[8px] font-bold text-amber-600 block">${f.name}</span>`;
+        
+        // Setup Drag events
+        let startY = 0, currentY = 0;
+        item.ontouchstart = (e) => { 
+            startY = e.touches[0].clientY; 
+            item.style.transition = 'none';
+        };
+        item.ontouchmove = (e) => {
+            currentY = e.touches[0].clientY - startY;
+            if (currentY < 0) { // Trascina solo verso l'alto
+                item.style.transform = `translateY(${currentY}px)`;
+                const opacity = 1 - Math.abs(currentY / 100);
+                item.style.opacity = opacity;
+                if (currentY < -60) item.style.backgroundColor = "#fee2e2";
+                else item.style.backgroundColor = "#fef3c7";
+            }
+        };
+        item.ontouchend = () => {
+            item.style.transition = 'all 0.3s ease';
+            if (currentY < -70) {
+                if (navigator.vibrate) navigator.vibrate(20);
+                deleteFavorite(f.id);
+            } else {
+                item.style.transform = 'translateY(0)';
+                item.style.opacity = '1';
+                item.style.backgroundColor = "#fef3c7";
+                // Se è stato solo un click (non un drag), carica il valore
+                if (Math.abs(currentY) < 5) loadFavorite(f.grams, f.food);
+            }
+            currentY = 0;
+        };
+        list.appendChild(item);
+      });
     }
 
     function loadFavorite(g, foodKey) {
-      // Seleziona l'alimento
       state.food = foodKey;
-      document.querySelectorAll('.food-card').forEach(c => c.classList.remove('active'));
-      // Cerchiamo l'elemento per rimettere la classe active (opzionale ma consigliato)
-      
-      // Sposta il righello
+      document.querySelectorAll('.food-card').forEach(c => {
+          c.classList.remove('active');
+          if(c.innerText.toLowerCase().includes(db[foodKey].name.toLowerCase())) c.classList.add('active');
+      });
       currentX = -(g * 16);
       moveTrack(currentX);
     }
