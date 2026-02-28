@@ -4,53 +4,59 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Chef Academy - Classic Pro</title>
+  <title>Chef Academy - Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
     body { 
       font-family: 'Plus Jakarta Sans', sans-serif; 
       background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); 
-      color: #1e293b; touch-action: none; overflow: hidden; 
+      color: #1e293b; touch-action: none; overflow: hidden; height: 100vh;
     }
     
-    /* Menu Laterale */
+    /* Menu Laterale - Ombra corretta */
     #side-menu {
       position: fixed; top: 0; left: 0; width: 280px; height: 100%;
       background: #0f172a; z-index: 200; transform: translateX(-100%);
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 20px 0 50px rgba(0,0,0,0.3);
+      box-shadow: 5px 0 25px rgba(0,0,0,0.1); /* Debug: Ombra alleggerita */
     }
     #side-menu.open { transform: translateX(0); }
-    #menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; display: none; backdrop-filter: blur(4px); }
+    #menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 150; display: none; backdrop-filter: blur(4px); }
 
-    /* Pagine */
-    .page { position: absolute; inset: 0; display: none; flex-direction: column; }
+    /* Layout Pagine */
+    .page { position: absolute; inset: 0; display: none; flex-direction: column; height: 100%; }
     .page.active { display: flex; }
 
-    /* Header Circular Progress */
-    .hero-circle { position: relative; width: 80px; height: 80px; background: #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid #334155; }
+    /* Sticky Output Area */
+    .sticky-output { 
+        position: sticky; top: 0; z-index: 50; 
+        background: #0f172a; border-radius: 0 0 2.5rem 2.5rem;
+        padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .hero-circle { position: relative; width: 75px; height: 75px; background: #1e293b; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #334155; }
     .progress-ring { position: absolute; transform: rotate(-90deg); }
     .progress-ring__circle { stroke: #fbbf24; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; stroke-linecap: round; transition: stroke-dashoffset 0.3s ease; }
 
-    /* Righello */
-    .ruler-container { position: relative; width: 100%; height: 80px; overflow: hidden; background: rgba(255,255,255,0.5); border-top: 1px solid rgba(0,0,0,0.05); }
+    /* Righello Fisso */
+    .ruler-container { position: relative; width: 100%; height: 70px; overflow: hidden; background: rgba(255,255,255,0.6); }
     .ruler-track { display: flex; align-items: flex-end; height: 100%; position: absolute; left: 50%; will-change: transform; }
     .tack { width: 2px; background: #cbd5e1; margin-right: 16px; flex-shrink: 0; height: 15px; }
     .tack.major { height: 35px; background: #94a3b8; position: relative; }
     .tack.major::after { content: attr(data-val); position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 800; color: #64748b; }
 
-    /* Sezioni Richiudibili */
+    /* Sezioni */
     .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-    .collapsible-content.open { max-height: 500px; overflow-y: auto; }
+    .collapsible-content.open { max-height: 400px; overflow-y: auto; }
+    .grid-item { background: white; border-radius: 1rem; padding: 10px; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; }
+    .grid-item.active { border-color: #fbbf24; background: #fffbeb; }
 
-    /* Cards */
-    .grid-item { background: white; border-radius: 1.25rem; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; border: 2px solid transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .grid-item.active { border-color: #fbbf24; background: #fffbeb; transform: scale(0.95); }
-
-    /* Drag & Delete Zone */
-    #drop-delete-zone { position: fixed; top: 0; width: 100%; height: 100px; background: #fef2f2; border-bottom: 3px dashed #ef4444; z-index: 100; transform: translateY(-100%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.3s; }
+    /* Drag & Delete */
+    #drop-delete-zone { position: fixed; top: 0; width: 100%; height: 90px; background: #fef2f2; border-bottom: 2px dashed #ef4444; z-index: 100; transform: translateY(-100%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.3s; color: #ef4444; }
     #drop-delete-zone.visible { transform: translateY(0); }
+    
+    .fav-item { transition: transform 0.1s linear; }
 
     .no-scrollbar::-webkit-scrollbar { display: none; }
   </style>
@@ -59,124 +65,108 @@
 
   <div id="menu-overlay" onclick="toggleMenu()"></div>
   <nav id="side-menu" class="p-8 text-white">
-      <h2 class="text-2xl font-black text-amber-500 mb-8 italic">CHEF ACADEMY</h2>
+      <h2 class="text-2xl font-black text-amber-500 mb-8">CHEF ACADEMY</h2>
       <div class="space-y-4">
-          <button onclick="switchPage('bilancia')" class="w-full flex items-center p-4 rounded-2xl bg-amber-500 text-slate-900 font-bold">⚖️ Bilancia Classic</button>
-          <button onclick="switchPage('convertitore')" class="w-full flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-300 font-bold">🍳 Cotto vs Crudo</button>
+          <button onclick="switchPage('bilancia')" class="w-full text-left p-4 rounded-xl bg-amber-500 text-slate-900 font-bold">⚖️ Bilancia Classic</button>
+          <button onclick="switchPage('convertitore')" class="w-full text-left p-4 rounded-xl hover:bg-slate-800 text-slate-300 font-bold">🍳 Cotto vs Crudo</button>
       </div>
   </nav>
 
   <div id="page-bilancia" class="page active">
       <div id="drop-delete-zone">
-          <span class="text-3xl mb-1">🗑️</span>
-          <span class="text-[10px] font-black text-red-600 uppercase tracking-widest">Rilascia per eliminare</span>
+          <span class="text-2xl">🗑️</span>
+          <span class="text-[9px] font-black uppercase tracking-widest">Elimina</span>
       </div>
 
-      <header class="p-5 flex justify-between items-center">
-          <button onclick="toggleMenu()" class="p-3 bg-white/80 rounded-2xl shadow-sm active:scale-90 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-          </button>
-          <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-slate-600">Smart Scale Pro</span>
-          <div class="w-12"></div>
+      <header class="p-4 flex justify-between items-center">
+          <button onclick="toggleMenu()" class="p-2 bg-white rounded-xl shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+          <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Classic Mode</span>
+          <div class="w-10"></div>
       </header>
 
-      <main class="flex-1 overflow-y-auto no-scrollbar px-5 space-y-4 pb-10">
-          
-          <div class="bg-slate-900 rounded-[2.5rem] p-6 text-white flex items-center justify-between h-40 shadow-xl">
-              <div class="hero-circle flex-shrink-0">
-                  <svg class="progress-ring" width="80" height="80"><circle id="mainRing" class="progress-ring__circle" stroke-width="5" fill="transparent" r="36" cx="40" cy="40"/></svg>
-                  <span id="mainEmoji" class="text-4xl z-10">🥄</span>
-              </div>
-              <div class="flex-1 px-4">
-                  <div class="flex items-baseline leading-none">
-                      <span id="intDisplay" class="text-6xl font-black tracking-tighter">0</span>
-                      <span id="toolLabel" class="text-[10px] text-slate-500 uppercase font-bold ml-2">Cucchiaio</span>
-                  </div>
-                  <p id="kcalDisplay" class="text-amber-500 text-[11px] font-black uppercase mt-2">0 KCAL</p>
-              </div>
-              <button onclick="saveFavorite()" class="bg-amber-500 text-slate-900 p-4 rounded-full shadow-lg active:scale-90 transition-all">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M12 6v12m6-6H6"></path></svg>
-              </button>
+      <div class="sticky-output mx-4 text-white flex items-center justify-between shadow-2xl">
+          <div class="hero-circle">
+              <svg class="progress-ring" width="75" height="75"><circle id="mainRing" class="progress-ring__circle" stroke-width="4" fill="transparent" r="34" cx="37.5" cy="37.5"/></svg>
+              <span id="mainEmoji" class="text-3xl">🥄</span>
+              <span id="toolLabel" class="text-[7px] font-bold uppercase mt-1 text-slate-400">Cucchiaio</span>
+          </div>
+          <div class="flex-1 px-4">
+              <div class="flex items-baseline"><span id="intDisplay" class="text-6xl font-black tracking-tighter">0</span><span class="text-xs font-bold text-amber-500 ml-1">DOSI</span></div>
+              <p id="kcalDisplay" class="text-[10px] font-bold text-slate-400 uppercase">0 KCAL</p>
+          </div>
+          <button onclick="saveFavorite()" class="bg-amber-500 text-slate-900 p-4 rounded-full shadow-lg active:scale-90">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M12 6v12m6-6H6"></path></svg>
+          </button>
+      </div>
+
+      <main class="flex-1 overflow-y-auto no-scrollbar px-5 py-4 space-y-4">
+          <div id="favoritesList" class="flex space-x-3 overflow-x-auto no-scrollbar min-h-[80px] items-center"></div>
+
+          <div class="bg-white/40 rounded-3xl p-2">
+              <button onclick="toggleCollapse('food-section')" class="w-full flex justify-between p-3 text-[10px] font-black uppercase">🥦 Alimenti <span id="food-section-icon">▼</span></button>
+              <div id="food-section" class="collapsible-content open"><div class="grid grid-cols-3 gap-2 p-2" id="foodGrid"></div></div>
           </div>
 
-          <div class="space-y-2">
-              <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">I tuoi salvati</h3>
-              <div id="favoritesList" class="flex space-x-3 overflow-x-auto no-scrollbar min-h-[70px] items-center py-1">
-                  <p class="text-[9px] text-slate-400 italic ml-2">Nessun salvataggio...</p>
-              </div>
+          <div class="bg-white/40 rounded-3xl p-2">
+              <button onclick="toggleCollapse('tool-section')" class="w-full flex justify-between p-3 text-[10px] font-black uppercase">📏 Dosatori <span id="tool-section-icon">▶</span></button>
+              <div id="tool-section" class="collapsible-content"><div class="grid grid-cols-3 gap-2 p-2" id="toolGrid"></div></div>
           </div>
-
-          <div class="bg-white/40 rounded-[2rem] p-2">
-              <button onclick="toggleCollapse('food-section')" class="w-full flex justify-between items-center p-4">
-                  <span class="text-xs font-black uppercase tracking-widest">🥦 Seleziona Alimento</span>
-                  <span id="food-section-icon">▼</span>
-              </button>
-              <div id="food-section" class="collapsible-content open">
-                  <div class="grid grid-cols-3 gap-2 p-2" id="foodGrid"></div>
-              </div>
-          </div>
-
-          <div class="bg-white/40 rounded-[2rem] p-2">
-              <button onclick="toggleCollapse('tool-section')" class="w-full flex justify-between items-center p-4">
-                  <span class="text-xs font-black uppercase tracking-widest">📏 Tipo di Dosatore</span>
-                  <span id="tool-section-icon">▶</span>
-              </button>
-              <div id="tool-section" class="collapsible-content">
-                  <div class="grid grid-cols-3 gap-2 p-2" id="toolGrid"></div>
-              </div>
-          </div>
-
       </main>
 
-      <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 pb-8">
-          <div class="flex justify-between items-center p-5">
-              <button onclick="resetGrams()" class="text-[10px] font-black text-red-500 uppercase bg-red-50 px-4 py-2 rounded-xl">Reset</button>
-              <div class="text-4xl font-black text-slate-800 tracking-tighter"><span id="gramsDisplay">0</span><span class="text-sm text-amber-500 ml-1">G</span></div>
-              <div class="w-10"></div>
+      <footer class="bg-white/90 backdrop-blur-md border-t border-slate-200">
+          <div class="flex justify-between items-center px-6 py-3">
+              <button onclick="resetGrams()" class="text-[9px] font-black text-red-500 uppercase bg-red-50 px-3 py-1 rounded-lg">Reset</button>
+              <div class="text-4xl font-black text-slate-800"><span id="gramsDisplay">0</span><span class="text-sm text-amber-500 ml-1 font-bold">G</span></div>
           </div>
           <div class="ruler-container" id="ruler">
-              <div class="absolute left-1/2 -translate-x-1/2 bottom-0 w-1.5 h-12 bg-amber-500 z-30 rounded-t-full shadow-lg"></div>
+              <div class="absolute left-1/2 -translate-x-1/2 bottom-0 w-1.5 h-10 bg-amber-500 z-30 rounded-t-full"></div>
               <div class="ruler-track" id="track"></div>
           </div>
       </footer>
   </div>
 
-  <div id="page-convertitore" class="page bg-white">
-      <header class="p-6"><button onclick="toggleMenu()" class="p-3 bg-slate-100 rounded-2xl">◀ Indietro</button></header>
-      <div class="flex-1 flex items-center justify-center font-bold text-slate-400 uppercase tracking-widest">In fase di calibrazione...</div>
+  <div id="page-convertitore" class="page bg-slate-900 text-white p-6">
+      <header class="flex justify-between items-center mb-10">
+          <button onclick="toggleMenu()" class="p-3 bg-white/10 rounded-xl">☰</button>
+          <span class="text-[10px] font-black uppercase tracking-widest">Resa Cotto/Crudo</span>
+          <div class="w-10"></div>
+      </header>
+      
+      <div class="bg-white/5 rounded-[2.5rem] p-8 text-center border border-white/10 mb-8">
+          <div class="flex justify-around items-center">
+              <div><span class="text-[10px] block opacity-40 uppercase mb-2">Crudo</span><span id="cvRaw" class="text-4xl font-black text-amber-500">100</span><span class="text-amber-500 ml-1">g</span></div>
+              <div class="h-10 w-px bg-white/10"></div>
+              <div><span class="text-[10px] block opacity-40 uppercase mb-2">Cotto</span><span id="cvCooked" class="text-4xl font-black text-emerald-400">250</span><span class="text-emerald-400 ml-1">g</span></div>
+          </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-8" id="convGrid"></div>
+
+      <div class="bg-white/5 p-6 rounded-3xl">
+          <input type="range" id="cvSlider" min="10" max="500" value="100" oninput="updateConv()" class="w-full h-2 bg-slate-700 rounded-lg appearance-none accent-amber-500">
+          <p class="text-center text-[10px] mt-4 font-bold text-slate-500 uppercase italic" id="cvHint">"La pasta aumenta di 2.5 volte"</p>
+      </div>
   </div>
 
   <script>
     const db = {
-      farina:   { name: "Farina",   emoji: "🌾", w: { cucchiaio: 12, cucchiaino: 4, tazzina: 60,  bicchiere: 120 }, kcal: 364 },
-      olio:     { name: "Olio",     emoji: "🫒", w: { cucchiaio: 9,  cucchiaino: 3, tazzina: 80,  bicchiere: 180 }, kcal: 884 },
-      zucchero: { name: "Zucchero", emoji: "🍬", w: { cucchiaio: 15, cucchiaino: 5, tazzina: 80,  bicchiere: 180 }, kcal: 387 },
-      sale:     { name: "Sale",     emoji: "🧂", w: { cucchiaio: 18, cucchiaino: 6, tazzina: 110, bicchiere: 250 }, kcal: 0 },
-      riso:     { name: "Riso",     emoji: "🍚", w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90,  bicchiere: 220 }, kcal: 130 },
-      latte:    { name: "Latte",    emoji: "🥛", w: { cucchiaio: 15, cucchiaino: 5, tazzina: 70,  bicchiere: 200 }, kcal: 64 },
-      miele:    { name: "Miele",    emoji: "🍯", w: { cucchiaio: 21, cucchiaino: 7, tazzina: 120, bicchiere: 300 }, kcal: 304 },
-      burro:    { name: "Burro",    emoji: "🧈", w: { cucchiaio: 14, cucchiaino: 5, tazzina: 90,  bicchiere: 210 }, kcal: 717 },
-      cacao:    { name: "Cacao",    emoji: "🍫", w: { cucchiaio: 8,  cucchiaino: 3, tazzina: 45,  bicchiere: 90 },  kcal: 228 }
+      farina: { name: "Farina", emoji: "🌾", kcal: 364, w: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120, tazza: 140, pugno: 30 } },
+      olio: { name: "Olio", emoji: "🫒", kcal: 884, w: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180, tazza: 200, pugno: 10 } },
+      riso: { name: "Riso", emoji: "🍚", kcal: 130, w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90, bicchiere: 220, tazza: 250, pugno: 45 } },
+      pasta: { name: "Pasta", emoji: "🍝", kcal: 350, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 60, bicchiere: 100, tazza: 120, pugno: 40 } },
+      zucchero: { name: "Zucchero", emoji: "🍬", kcal: 387, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 80, bicchiere: 180, tazza: 200, pugno: 25 } },
+      sale: { name: "Sale", emoji: "🧂", kcal: 0, w: { cucchiaio: 18, cucchiaino: 6, tazzina: 110, bicchiere: 250, tazza: 280, pugno: 35 } }
     };
 
-    const tools = [
-        { id: 'cucchiaio',  name: 'Cucchiaio', emoji: '🥄' },
-        { id: 'cucchiaino', name: 'Piccolo',   emoji: '🍴' },
-        { id: 'tazzina',    name: 'Tazzina',   emoji: '☕' },
-        { id: 'bicchiere',  name: 'Bicchiere', emoji: '🥃' },
-        { id: 'tazza',      name: 'Mug',       emoji: '🥛' },
-        { id: 'pugno',      name: 'Pugno',     emoji: '✊' }
-    ];
+    const toolIcons = { cucchiaio: '🥄', cucchiaino: '🍴', tazzina: '☕', bicchiere: '🥃', tazza: '🥛', pugno: '✊' };
+    const convData = { pasta: 2.5, riso: 2.8, carne: 0.7, pollo: 0.8, legumi: 3.0, spinaci: 0.15 };
 
     let state = { food: 'farina', tool: 'cucchiaio', grams: 0, favorites: [] };
-    let currentX = 0, prevGrams = 0;
+    let currentX = 0, cvRatio = 2.5;
 
     function toggleMenu() {
-        const m = document.getElementById('side-menu');
-        const o = document.getElementById('menu-overlay');
-        const isOpen = m.classList.contains('open');
-        m.classList.toggle('open');
-        o.style.display = isOpen ? 'none' : 'block';
+        document.getElementById('side-menu').classList.toggle('open');
+        document.getElementById('menu-overlay').style.display = document.getElementById('side-menu').classList.contains('open') ? 'block' : 'none';
     }
 
     function switchPage(p) {
@@ -187,47 +177,39 @@
 
     function toggleCollapse(id) {
         const el = document.getElementById(id);
-        const icon = document.getElementById(id + '-icon');
-        const isOpen = el.classList.contains('open');
-        
-        // Chiudi tutti gli altri se vuoi effetto fisarmonica
-        // document.querySelectorAll('.collapsible-content').forEach(c => c.classList.remove('open'));
-
-        el.classList.toggle('open');
-        icon.innerText = isOpen ? '▶' : '▼';
+        const isOpen = el.classList.toggle('open');
+        document.getElementById(id + '-icon').innerText = isOpen ? '▼' : '▶';
     }
 
     function init() {
-        // Popola Alimenti
+        // Popola Alimenti (3 col)
         const fGrid = document.getElementById('foodGrid');
         Object.keys(db).forEach(k => {
             const div = document.createElement('div');
             div.className = `grid-item ${k === state.food ? 'active' : ''}`;
-            div.onclick = () => {
-                state.food = k;
-                document.querySelectorAll('#foodGrid .grid-item').forEach(i => i.classList.remove('active'));
-                div.classList.add('active');
-                updateUI();
-            };
-            div.innerHTML = `<span class="text-2xl mb-1">${db[k].emoji}</span><span class="text-[8px] font-bold uppercase truncate w-full text-center">${db[k].name}</span>`;
+            div.onclick = () => { state.food = k; updateUI(); document.querySelectorAll('#foodGrid .grid-item').forEach(i => i.classList.remove('active')); div.classList.add('active'); };
+            div.innerHTML = `<span class="text-2xl">${db[k].emoji}</span><span class="text-[8px] font-black uppercase mt-1">${db[k].name}</span>`;
             fGrid.appendChild(div);
         });
 
-        // Popola Dosatori
+        // Popola Dosatori (3 col)
         const tGrid = document.getElementById('toolGrid');
-        tools.forEach(t => {
+        Object.keys(toolIcons).forEach(k => {
             const div = document.createElement('div');
-            div.className = `grid-item ${t.id === state.tool ? 'active' : ''}`;
-            div.onclick = () => {
-                state.tool = t.id;
-                document.querySelectorAll('#toolGrid .grid-item').forEach(i => i.classList.remove('active'));
-                div.classList.add('active');
-                document.getElementById('mainEmoji').innerText = t.emoji;
-                document.getElementById('toolLabel').innerText = t.name;
-                updateUI();
-            };
-            div.innerHTML = `<span class="text-2xl mb-1">${t.emoji}</span><span class="text-[8px] font-bold uppercase">${t.name}</span>`;
+            div.className = `grid-item ${k === state.tool ? 'active' : ''}`;
+            div.onclick = () => { state.tool = k; updateUI(); document.querySelectorAll('#toolGrid .grid-item').forEach(i => i.classList.remove('active')); div.classList.add('active'); };
+            div.innerHTML = `<span class="text-2xl">${toolIcons[k]}</span><span class="text-[8px] font-black uppercase mt-1">${k}</span>`;
             tGrid.appendChild(div);
+        });
+
+        // Popola Convertitore
+        const cGrid = document.getElementById('convGrid');
+        Object.keys(convData).forEach(k => {
+            const btn = document.createElement('button');
+            btn.className = "p-4 bg-white/5 rounded-2xl border border-white/10 text-[10px] font-bold uppercase";
+            btn.innerText = k;
+            btn.onclick = () => { cvRatio = convData[k]; updateConv(); };
+            cGrid.appendChild(btn);
         });
 
         // Righello
@@ -240,6 +222,7 @@
         }
         setupRuler();
         updateUI();
+        updateConv();
     }
 
     function setupRuler() {
@@ -252,18 +235,14 @@
             if (x > 0) x = 0;
             currentX = x;
             state.grams = Math.abs(Math.round(x/16));
-            if(state.grams !== prevGrams) {
-                if(navigator.vibrate) navigator.vibrate(5);
-                prevGrams = state.grams;
-                updateUI();
-            }
+            updateUI();
         }, { passive: false });
         window.addEventListener('touchend', () => isDown = false);
     }
 
     function updateUI() {
         const f = db[state.food];
-        const tw = f.w[state.tool] || 15;
+        const tw = f.w[state.tool];
         const units = state.grams / tw;
         const perc = (units % 1) * 100;
 
@@ -271,52 +250,53 @@
         document.getElementById('gramsDisplay').innerText = state.grams;
         document.getElementById('track').style.transform = `translateX(${currentX}px)`;
         document.getElementById('kcalDisplay').innerText = Math.round((f.kcal * state.grams) / 100) + " KCAL";
+        document.getElementById('mainEmoji').innerText = toolIcons[state.tool];
+        document.getElementById('toolLabel').innerText = state.tool;
 
-        const offset = 251.2 - ((perc === 0 && units > 0 ? 100 : perc) / 100 * 226); // Adjusted for visual
+        const offset = 251.2 - ((perc === 0 && units > 0 ? 100 : perc) / 100 * 251.2);
         document.getElementById('mainRing').style.strokeDashoffset = offset;
+        if(state.grams % tw === 0 && state.grams > 0) navigator.vibrate?.(10);
     }
-
-    function resetGrams() { currentX = 0; state.grams = 0; updateUI(); }
 
     function saveFavorite() {
         if(state.grams === 0) return;
-        state.favorites.unshift({ 
-            id: Date.now(), 
-            grams: state.grams, 
-            foodName: db[state.food].name, 
-            emoji: db[state.food].emoji 
-        });
+        state.favorites.unshift({ id: Date.now(), grams: state.grams, emoji: db[state.food].emoji });
         renderFavorites();
     }
 
     function renderFavorites() {
         const list = document.getElementById('favoritesList');
         const zone = document.getElementById('drop-delete-zone');
-        list.innerHTML = state.favorites.length ? '' : '<p class="text-[9px] text-slate-400 italic ml-2">Nessun salvataggio...</p>';
-
+        list.innerHTML = '';
         state.favorites.forEach(f => {
-            const item = document.createElement('div');
-            item.className = "bg-white shadow-sm rounded-2xl p-3 flex-shrink-0 text-center border border-slate-100 min-w-[70px] touch-none";
-            item.innerHTML = `<span class="text-xl block">${f.emoji}</span><span class="text-[10px] font-black">${f.grams}g</span>`;
+            const div = document.createElement('div');
+            div.className = "fav-item bg-white p-3 rounded-2xl shadow-sm text-center min-w-[65px]";
+            div.innerHTML = `<span class="text-xl block">${f.emoji}</span><span class="text-[10px] font-black">${f.grams}g</span>`;
             
-            let startY = 0, moveY = 0;
-            item.ontouchstart = (e) => { startY = e.touches[0].clientY; zone.classList.add('visible'); };
-            item.ontouchmove = (e) => {
-                moveY = e.touches[0].clientY - startY;
-                if(moveY < 0) item.style.transform = `translateY(${moveY}px)`;
+            let sX, sY, mX, mY;
+            div.ontouchstart = (e) => { sX = e.touches[0].clientX; sY = e.touches[0].clientY; zone.classList.add('visible'); };
+            div.ontouchmove = (e) => { 
+                mX = e.touches[0].clientX - sX; mY = e.touches[0].clientY - sY;
+                div.style.transform = `translate(${mX}px, ${mY}px)`;
             };
-            item.ontouchend = (e) => {
+            div.ontouchend = (e) => {
                 zone.classList.remove('visible');
-                if(moveY < -60) {
+                if(e.changedTouches[0].clientY < 100) {
                     state.favorites = state.favorites.filter(x => x.id !== f.id);
                     renderFavorites();
-                } else {
-                    item.style.transform = 'translateY(0)';
-                }
+                } else { div.style.transform = 'translate(0,0)'; }
             };
-            list.appendChild(item);
+            list.appendChild(div);
         });
     }
+
+    function updateConv() {
+        const v = document.getElementById('cvSlider').value;
+        document.getElementById('cvRaw').innerText = v;
+        document.getElementById('cvCooked').innerText = Math.round(v * cvRatio);
+    }
+
+    function resetGrams() { currentX = 0; state.grams = 0; updateUI(); }
 
     init();
   </script>
