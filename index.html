@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Chef Academy 2026 - Fixed</title>
+  <title>Chef Academy 2026 - Popover Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -28,6 +28,24 @@
         transition: height 0.3s ease-out; z-index: 1;
     }
 
+    /* NUOVO POP-OVER */
+    #tool-popover {
+        position: absolute; top: 110%; left: 1.8rem;
+        background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem;
+        padding: 0.8rem; display: none; grid-template-cols: repeat(3, 1fr); gap: 0.5rem;
+        z-index: 5000; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        transform-origin: top left; animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+    
+    .popover-item {
+        background: rgba(255,255,255,0.05); border-radius: 1rem;
+        padding: 0.8rem; text-align: center; color: white;
+        transition: all 0.2s; border: 1px solid transparent;
+    }
+    .popover-item.active { background: #fbbf24; color: #0f172a; }
+
     #drop-delete-zone { 
         position: fixed; top: 0; width: 100%; height: 130px; 
         background: #ef4444; z-index: 80000; 
@@ -40,7 +58,7 @@
     .fav-item { 
         background: white; border-radius: 1.2rem; padding: 12px;
         min-width: 78px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        touch-action: none; position: relative; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        touch-action: none; position: relative;
     }
     .fav-dragging { 
         z-index: 99999 !important; position: fixed !important; 
@@ -48,25 +66,16 @@
         box-shadow: 0 40px 80px rgba(0,0,0,0.4) !important;
     }
 
-    /* Stile per elemento SELEZIONATO */
-    .grid-selection {
-        border: 3px solid transparent;
-        transition: all 0.2s ease;
-    }
-    .grid-selection.active {
-        border-color: #fbbf24;
-        background-color: #fffbeb !important;
-        transform: scale(1.05);
-    }
-
     .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
     .collapsible-content.open { max-height: 1000px; }
 
     .ruler-container { position: relative; width: 100%; height: 75px; overflow: hidden; background: white; }
-    .ruler-track { display: flex; align-items: flex-end; height: 100%; position: absolute; left: 50%; transition: transform 0.1s ease-out; }
+    .ruler-track { display: flex; align-items: flex-end; height: 100%; position: absolute; left: 50%; }
     .tack { width: 2px; background: #e2e8f0; margin-right: 20px; flex-shrink: 0; height: 15px; }
     .tack.major { height: 38px; background: #94a3b8; position: relative; }
     .tack.major::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 800; color: #94a3b8; }
+    
+    .grid-selection.active { border: 3px solid #fbbf24; background: #fffbeb !important; }
   </style>
 </head>
 <body>
@@ -79,16 +88,21 @@
   <div class="flex flex-col h-full">
       <header class="p-5 bg-[#0f172a] flex justify-between items-center">
           <div class="text-white font-black italic text-lg tracking-tighter">CHEF<span class="text-amber-500">ACADEMY</span></div>
-          <div class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-[10px] text-white font-bold">PRO</div>
+          <div class="text-[9px] text-white/30 font-bold uppercase tracking-widest">UI v3.2</div>
       </header>
 
       <div class="sticky-output">
           <div class="liquid-bg" id="liquid"></div>
           <div class="relative z-10 flex items-center justify-between">
-              <div class="bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/10 text-center min-w-[80px]">
+              
+              <div onclick="togglePopover(event)" class="bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/10 text-center min-w-[90px] active:scale-95 transition-transform cursor-pointer">
                   <span id="mainEmoji" class="text-4xl block mb-1">🥄</span>
                   <span id="toolLabel" class="text-[8px] font-black text-amber-500 uppercase">Cucchiaio</span>
+                  <div class="text-[7px] text-white/40 font-bold mt-1">CAMBIA ▼</div>
               </div>
+
+              <div id="tool-popover" class="grid grid-cols-3 w-[240px]"></div>
+
               <div class="flex-1 px-6 text-white">
                   <div class="flex items-baseline leading-none">
                       <span id="intDisplay" class="text-7xl font-black tracking-tighter">0</span>
@@ -102,17 +116,12 @@
           </div>
       </div>
 
-      <main class="flex-1 overflow-y-auto no-scrollbar px-5 py-6 space-y-6">
+      <main class="flex-1 overflow-y-auto no-scrollbar px-5 py-6 space-y-6" onclick="closePopover()">
           <div id="favoritesList" class="flex space-x-4 overflow-x-auto no-scrollbar min-h-[100px] items-center"></div>
 
           <div class="bg-white rounded-[2.2rem] p-2 shadow-sm">
               <button onclick="toggleCollapse('food-section')" class="w-full flex justify-between p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Ingredienti <span id="food-section-icon">▼</span></button>
               <div id="food-section" class="collapsible-content open"><div class="grid grid-cols-3 gap-3 p-3" id="foodGrid"></div></div>
-          </div>
-
-          <div class="bg-white rounded-[2.2rem] p-2 shadow-sm">
-              <button onclick="toggleCollapse('tool-section')" class="w-full flex justify-between p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Dosatori <span id="tool-section-icon">▶</span></button>
-              <div id="tool-section" class="collapsible-content"><div class="grid grid-cols-3 gap-3 p-3" id="toolGrid"></div></div>
           </div>
       </main>
 
@@ -134,8 +143,7 @@
         olio: { emoji: "🫒", kcal: 884, w: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180, tazza: 200, pugno: 10 } },
         riso: { emoji: "🍚", kcal: 130, w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90, bicchiere: 220, tazza: 250, pugno: 45 } },
         zucchero: { emoji: "🍬", kcal: 387, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 80, bicchiere: 180, tazza: 200, pugno: 25 } },
-        pasta: { emoji: "🍝", kcal: 350, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 60, bicchiere: 100, tazza: 120, pugno: 40 } },
-        cacao: { emoji: "🍫", kcal: 228, w: { cucchiaio: 8, cucchiaino: 3, tazzina: 45, bicchiere: 90, tazza: 110, pugno: 20 } }
+        pasta: { emoji: "🍝", kcal: 350, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 60, bicchiere: 100, tazza: 120, pugno: 40 } }
     };
     const toolIcons = { cucchiaio: '🥄', cucchiaino: '🍴', tazzina: '☕', bicchiere: '🥃', tazza: '🥛', pugno: '✊' };
     let state = { food: 'farina', tool: 'cucchiaio', grams: 0, favorites: [] };
@@ -153,20 +161,20 @@
         Object.keys(db).forEach(k => {
             const d = document.createElement('div');
             d.id = 'food-' + k;
-            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center grid-selection";
+            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center border-2 border-transparent transition-all";
             d.innerHTML = `<span class="text-3xl">${db[k].emoji}</span>`;
-            d.onclick = () => { selectFood(k); };
+            d.onclick = () => { state.food = k; updateUI(); };
             fGrid.appendChild(d);
         });
 
-        const tGrid = document.getElementById('toolGrid');
+        // POPOLA IL POP-OVER
+        const pop = document.getElementById('tool-popover');
         Object.keys(toolIcons).forEach(k => {
             const d = document.createElement('div');
-            d.id = 'tool-' + k;
-            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center grid-selection";
-            d.innerHTML = `<span class="text-3xl">${toolIcons[k]}</span>`;
-            d.onclick = () => { selectTool(k); };
-            tGrid.appendChild(d);
+            d.className = "popover-item";
+            d.innerHTML = `<span class="text-2xl block">${toolIcons[k]}</span><span class="text-[8px] font-bold uppercase mt-1">${k}</span>`;
+            d.onclick = (e) => { e.stopPropagation(); state.tool = k; updateUI(); closePopover(); };
+            pop.appendChild(d);
         });
 
         const track = document.getElementById('track');
@@ -180,22 +188,21 @@
         updateUI();
     }
 
-    function selectFood(k) {
-        state.food = k;
-        navigator.vibrate?.(5);
-        updateUI();
+    function togglePopover(e) {
+        e.stopPropagation();
+        const p = document.getElementById('tool-popover');
+        p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
+        playSfx(1000, 'sine', 0.05);
     }
 
-    function selectTool(k) {
-        state.tool = k;
-        navigator.vibrate?.(5);
-        updateUI();
+    function closePopover() {
+        document.getElementById('tool-popover').style.display = 'none';
     }
 
     function setupRuler() {
         const r = document.getElementById('ruler');
         let startX = 0, isDown = false;
-        r.ontouchstart = (e) => { isDown = true; startX = e.touches[0].clientX - currentX; };
+        r.ontouchstart = (e) => { isDown = true; startX = e.touches[0].clientX - currentX; closePopover(); };
         window.addEventListener('touchmove', (e) => {
             if (!isDown) return;
             currentX = e.touches[0].clientX - startX;
@@ -211,21 +218,17 @@
         const tw = f.w[state.tool];
         const units = state.grams / tw;
         
-        // Update Testi
         document.getElementById('intDisplay').innerText = Math.floor(units);
         document.getElementById('gramsDisplay').innerText = state.grams;
         document.getElementById('track').style.transform = `translateX(${currentX}px)`;
         document.getElementById('mainEmoji').innerText = toolIcons[state.tool];
         document.getElementById('toolLabel').innerText = state.tool;
         document.getElementById('kcalDisplay').innerText = Math.round((f.kcal * state.grams) / 100) + " KCAL";
-        
-        // Update Liquid Progress
         document.documentElement.style.setProperty('--p-level', ((units % 1) * 100) + '%');
         
-        // UPDATE VISUALE SELEZIONE (Fix per il "casotto")
-        document.querySelectorAll('.grid-selection').forEach(el => el.classList.remove('active'));
+        // Highlight Ingredienti
+        document.querySelectorAll('#foodGrid div').forEach(el => el.classList.remove('active'));
         document.getElementById('food-' + state.food).classList.add('active');
-        document.getElementById('tool-' + state.tool).classList.add('active');
 
         if(state.grams > 0 && state.grams % tw === 0) { 
             navigator.vibrate?.(15); 
@@ -260,6 +263,7 @@
             div.ontouchstart = (e) => { 
                 sX = e.touches[0].clientX; sY = e.touches[0].clientY; 
                 moved = false;
+                closePopover();
             };
             div.ontouchmove = (e) => {
                 let dx = e.touches[0].clientX - sX;
