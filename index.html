@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Chef Academy 2026 - Ultra Stable</title>
+  <title>Chef Academy 2026 - Fixed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -48,6 +48,17 @@
         box-shadow: 0 40px 80px rgba(0,0,0,0.4) !important;
     }
 
+    /* Stile per elemento SELEZIONATO */
+    .grid-selection {
+        border: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .grid-selection.active {
+        border-color: #fbbf24;
+        background-color: #fffbeb !important;
+        transform: scale(1.05);
+    }
+
     .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
     .collapsible-content.open { max-height: 1000px; }
 
@@ -62,12 +73,13 @@
 
   <div id="drop-delete-zone">
       <span class="text-4xl">🗑️</span>
-      <span class="text-[10px] font-black uppercase tracking-widest mt-2">Rilascia per eliminare</span>
+      <span class="text-[10px] font-black uppercase tracking-widest mt-2">Elimina</span>
   </div>
 
   <div class="flex flex-col h-full">
       <header class="p-5 bg-[#0f172a] flex justify-between items-center">
           <div class="text-white font-black italic text-lg tracking-tighter">CHEF<span class="text-amber-500">ACADEMY</span></div>
+          <div class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-[10px] text-white font-bold">PRO</div>
       </header>
 
       <div class="sticky-output">
@@ -121,7 +133,9 @@
         farina: { emoji: "🌾", kcal: 364, w: { cucchiaio: 12, cucchiaino: 4, tazzina: 60, bicchiere: 120, tazza: 140, pugno: 30 } },
         olio: { emoji: "🫒", kcal: 884, w: { cucchiaio: 9, cucchiaino: 3, tazzina: 80, bicchiere: 180, tazza: 200, pugno: 10 } },
         riso: { emoji: "🍚", kcal: 130, w: { cucchiaio: 20, cucchiaino: 7, tazzina: 90, bicchiere: 220, tazza: 250, pugno: 45 } },
-        zucchero: { emoji: "🍬", kcal: 387, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 80, bicchiere: 180, tazza: 200, pugno: 25 } }
+        zucchero: { emoji: "🍬", kcal: 387, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 80, bicchiere: 180, tazza: 200, pugno: 25 } },
+        pasta: { emoji: "🍝", kcal: 350, w: { cucchiaio: 15, cucchiaino: 5, tazzina: 60, bicchiere: 100, tazza: 120, pugno: 40 } },
+        cacao: { emoji: "🍫", kcal: 228, w: { cucchiaio: 8, cucchiaino: 3, tazzina: 45, bicchiere: 90, tazza: 110, pugno: 20 } }
     };
     const toolIcons = { cucchiaio: '🥄', cucchiaino: '🍴', tazzina: '☕', bicchiere: '🥃', tazza: '🥛', pugno: '✊' };
     let state = { food: 'farina', tool: 'cucchiaio', grams: 0, favorites: [] };
@@ -135,22 +149,23 @@
     }
 
     function init() {
-        // Popolamento dinamico (Bug fix: aggiunto stile active visibile)
         const fGrid = document.getElementById('foodGrid');
         Object.keys(db).forEach(k => {
             const d = document.createElement('div');
-            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center border-2 border-transparent";
+            d.id = 'food-' + k;
+            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center grid-selection";
             d.innerHTML = `<span class="text-3xl">${db[k].emoji}</span>`;
-            d.onclick = () => { state.food = k; updateUI(); };
+            d.onclick = () => { selectFood(k); };
             fGrid.appendChild(d);
         });
 
         const tGrid = document.getElementById('toolGrid');
         Object.keys(toolIcons).forEach(k => {
             const d = document.createElement('div');
-            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center border-2 border-transparent";
+            d.id = 'tool-' + k;
+            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center grid-selection";
             d.innerHTML = `<span class="text-3xl">${toolIcons[k]}</span>`;
-            d.onclick = () => { state.tool = k; updateUI(); };
+            d.onclick = () => { selectTool(k); };
             tGrid.appendChild(d);
         });
 
@@ -162,6 +177,18 @@
             track.appendChild(t);
         }
         setupRuler();
+        updateUI();
+    }
+
+    function selectFood(k) {
+        state.food = k;
+        navigator.vibrate?.(5);
+        updateUI();
+    }
+
+    function selectTool(k) {
+        state.tool = k;
+        navigator.vibrate?.(5);
         updateUI();
     }
 
@@ -183,27 +210,40 @@
         const f = db[state.food];
         const tw = f.w[state.tool];
         const units = state.grams / tw;
+        
+        // Update Testi
         document.getElementById('intDisplay').innerText = Math.floor(units);
         document.getElementById('gramsDisplay').innerText = state.grams;
         document.getElementById('track').style.transform = `translateX(${currentX}px)`;
         document.getElementById('mainEmoji').innerText = toolIcons[state.tool];
         document.getElementById('toolLabel').innerText = state.tool;
+        document.getElementById('kcalDisplay').innerText = Math.round((f.kcal * state.grams) / 100) + " KCAL";
+        
+        // Update Liquid Progress
         document.documentElement.style.setProperty('--p-level', ((units % 1) * 100) + '%');
-        if(state.grams > 0 && state.grams % tw === 0) { navigator.vibrate?.(10); playSfx(400, 'sine', 0.1); }
+        
+        // UPDATE VISUALE SELEZIONE (Fix per il "casotto")
+        document.querySelectorAll('.grid-selection').forEach(el => el.classList.remove('active'));
+        document.getElementById('food-' + state.food).classList.add('active');
+        document.getElementById('tool-' + state.tool).classList.add('active');
+
+        if(state.grams > 0 && state.grams % tw === 0) { 
+            navigator.vibrate?.(15); 
+            playSfx(440, 'sine', 0.1); 
+        }
     }
 
-    // FIX: RICHIAMO PREFERITO
     function recallFavorite(g) {
         state.grams = g;
         currentX = -(g * 22);
-        playSfx(600, 'sine', 0.2);
         updateUI();
+        playSfx(600, 'sine', 0.2);
     }
 
     function saveFavorite() {
         if(state.grams === 0) return;
         state.favorites.unshift({ id: Date.now(), grams: state.grams, emoji: db[state.food].emoji });
-        playSfx(800, 'sine', 0.1);
+        playSfx(880, 'sine', 0.1);
         renderFavorites();
     }
 
@@ -218,7 +258,6 @@
             
             let sX, sY, moved = false;
             div.ontouchstart = (e) => { 
-                const r = div.getBoundingClientRect();
                 sX = e.touches[0].clientX; sY = e.touches[0].clientY; 
                 moved = false;
             };
@@ -235,11 +274,10 @@
             };
             div.ontouchend = (e) => {
                 zone.classList.remove('visible');
-                if (!moved) {
-                    recallFavorite(f.grams); // CLICK FUNZIONANTE
-                } else if (e.changedTouches[0].clientY < 130) {
+                if (!moved) recallFavorite(f.grams);
+                else if (e.changedTouches[0].clientY < 130) {
                     state.favorites = state.favorites.filter(x => x.id !== f.id);
-                    playSfx(100, 'square', 0.2);
+                    playSfx(150, 'square', 0.2);
                     renderFavorites();
                 }
                 div.classList.remove('fav-dragging');
