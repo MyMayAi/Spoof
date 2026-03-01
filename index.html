@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Chef Academy 2026 - Popover Edition</title>
+  <title>Chef Academy 2026 - Popover Fix</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -28,23 +28,25 @@
         transition: height 0.3s ease-out; z-index: 1;
     }
 
-    /* NUOVO POP-OVER */
+    /* POP-OVER CORRETTO */
     #tool-popover {
-        position: absolute; top: 110%; left: 1.8rem;
-        background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem;
-        padding: 0.8rem; display: none; grid-template-cols: repeat(3, 1fr); gap: 0.5rem;
-        z-index: 5000; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        transform-origin: top left; animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: absolute; top: 110%; left: 1rem;
+        background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 2rem;
+        padding: 1rem; display: none; grid-template-columns: repeat(3, 1fr); gap: 0.8rem;
+        z-index: 9999; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        width: 280px;
     }
-    @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     
+    /* Impedisce ai figli di rubare il click al padre */
+    .no-pointer { pointer-events: none; }
+
     .popover-item {
-        background: rgba(255,255,255,0.05); border-radius: 1rem;
-        padding: 0.8rem; text-align: center; color: white;
-        transition: all 0.2s; border: 1px solid transparent;
+        background: rgba(255,255,255,0.05); border-radius: 1.2rem;
+        padding: 1rem; text-align: center; color: white;
+        transition: all 0.2s; border: 2px solid transparent;
     }
-    .popover-item.active { background: #fbbf24; color: #0f172a; }
+    .popover-item.active { border-color: #fbbf24; background: rgba(251,191,36,0.1); }
 
     #drop-delete-zone { 
         position: fixed; top: 0; width: 100%; height: 130px; 
@@ -88,20 +90,19 @@
   <div class="flex flex-col h-full">
       <header class="p-5 bg-[#0f172a] flex justify-between items-center">
           <div class="text-white font-black italic text-lg tracking-tighter">CHEF<span class="text-amber-500">ACADEMY</span></div>
-          <div class="text-[9px] text-white/30 font-bold uppercase tracking-widest">UI v3.2</div>
       </header>
 
       <div class="sticky-output">
           <div class="liquid-bg" id="liquid"></div>
           <div class="relative z-10 flex items-center justify-between">
               
-              <div onclick="togglePopover(event)" class="bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/10 text-center min-w-[90px] active:scale-95 transition-transform cursor-pointer">
-                  <span id="mainEmoji" class="text-4xl block mb-1">🥄</span>
-                  <span id="toolLabel" class="text-[8px] font-black text-amber-500 uppercase">Cucchiaio</span>
-                  <div class="text-[7px] text-white/40 font-bold mt-1">CAMBIA ▼</div>
+              <div id="tool-trigger" onclick="togglePopover(event)" class="bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/10 text-center min-w-[90px] active:scale-95 transition-transform cursor-pointer overflow-visible">
+                  <span id="mainEmoji" class="text-4xl block mb-1 no-pointer">🥄</span>
+                  <span id="toolLabel" class="text-[8px] font-black text-amber-500 uppercase no-pointer">Cucchiaio</span>
+                  <div class="text-[7px] text-white/40 font-bold mt-1 no-pointer">CAMBIA ▼</div>
+                  
+                  <div id="tool-popover" class="grid"></div>
               </div>
-
-              <div id="tool-popover" class="grid grid-cols-3 w-[240px]"></div>
 
               <div class="flex-1 px-6 text-white">
                   <div class="flex items-baseline leading-none">
@@ -116,7 +117,7 @@
           </div>
       </div>
 
-      <main class="flex-1 overflow-y-auto no-scrollbar px-5 py-6 space-y-6" onclick="closePopover()">
+      <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar px-5 py-6 space-y-6" onclick="closePopover()">
           <div id="favoritesList" class="flex space-x-4 overflow-x-auto no-scrollbar min-h-[100px] items-center"></div>
 
           <div class="bg-white rounded-[2.2rem] p-2 shadow-sm">
@@ -161,19 +162,23 @@
         Object.keys(db).forEach(k => {
             const d = document.createElement('div');
             d.id = 'food-' + k;
-            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center border-2 border-transparent transition-all";
+            d.className = "p-4 bg-slate-50 rounded-2xl flex flex-col items-center border-2 border-transparent";
             d.innerHTML = `<span class="text-3xl">${db[k].emoji}</span>`;
-            d.onclick = () => { state.food = k; updateUI(); };
+            d.onclick = (e) => { e.stopPropagation(); state.food = k; updateUI(); };
             fGrid.appendChild(d);
         });
 
-        // POPOLA IL POP-OVER
         const pop = document.getElementById('tool-popover');
         Object.keys(toolIcons).forEach(k => {
             const d = document.createElement('div');
             d.className = "popover-item";
             d.innerHTML = `<span class="text-2xl block">${toolIcons[k]}</span><span class="text-[8px] font-bold uppercase mt-1">${k}</span>`;
-            d.onclick = (e) => { e.stopPropagation(); state.tool = k; updateUI(); closePopover(); };
+            d.onclick = (e) => { 
+                e.stopPropagation(); 
+                state.tool = k; 
+                updateUI(); 
+                closePopover(); 
+            };
             pop.appendChild(d);
         });
 
@@ -191,8 +196,9 @@
     function togglePopover(e) {
         e.stopPropagation();
         const p = document.getElementById('tool-popover');
-        p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
-        playSfx(1000, 'sine', 0.05);
+        const isVisible = p.style.display === 'grid';
+        p.style.display = isVisible ? 'none' : 'grid';
+        if (!isVisible) playSfx(1000, 'sine', 0.05);
     }
 
     function closePopover() {
@@ -226,7 +232,6 @@
         document.getElementById('kcalDisplay').innerText = Math.round((f.kcal * state.grams) / 100) + " KCAL";
         document.documentElement.style.setProperty('--p-level', ((units % 1) * 100) + '%');
         
-        // Highlight Ingredienti
         document.querySelectorAll('#foodGrid div').forEach(el => el.classList.remove('active'));
         document.getElementById('food-' + state.food).classList.add('active');
 
@@ -260,11 +265,7 @@
             div.innerHTML = `<span class="text-2xl block">${f.emoji}</span><span class="text-[10px] font-black">${f.grams}g</span>`;
             
             let sX, sY, moved = false;
-            div.ontouchstart = (e) => { 
-                sX = e.touches[0].clientX; sY = e.touches[0].clientY; 
-                moved = false;
-                closePopover();
-            };
+            div.ontouchstart = (e) => { sX = e.touches[0].clientX; sY = e.touches[0].clientY; moved = false; closePopover(); };
             div.ontouchmove = (e) => {
                 let dx = e.touches[0].clientX - sX;
                 let dy = e.touches[0].clientY - sY;
